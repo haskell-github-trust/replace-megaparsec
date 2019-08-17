@@ -105,7 +105,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Parsereplace.Megaparsec
+module Parsereplace
   (
     -- * Parser combinator
     sepCap
@@ -147,7 +147,7 @@ import Control.Monad
 -- returned as a non-matching 'Left' section.
 sepCap
     :: forall e s m a. (MonadParsec e s m)
-    => m a -- ^ The pattern matching parser @sep@.
+    => m a -- ^ The pattern matching parser @sep@
     -> m [Either (Tokens s) a]
 sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
              $ fmap sequenceLeft
@@ -171,7 +171,7 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
 -- the 'Right' sections, along with the result of the parse of @sep@.
 findAll
     :: MonadParsec e s m
-    => m a -- ^ The pattern matching parser @sep@.
+    => m a -- ^ The pattern matching parser @sep@
     -> m [Either (Tokens s) (Tokens s, a)]
 findAll sep = sepCap (match sep)
 
@@ -185,7 +185,7 @@ findAll sep = sepCap (match sep)
 -- the 'Right' sections, rather than the result of the parse of @sep@.
 findAllGroup
     :: MonadParsec e s m
-    => m a -- ^ The pattern matching parser @sep@.
+    => m a -- ^ The pattern matching parser @sep@
     -> m [Either (Tokens s) (Tokens s)]
 findAllGroup sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 
@@ -217,12 +217,13 @@ findAllGroup sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 --
 -- We need @Typeable s@ and @Show s@ for 'Control.Exception.throw'.
 --
--- === Access the original matched section
+-- === Access the matched section of text in the editor
 --
 -- If you want access to the matched string in the @editor@ function,
 -- then combine the pattern parser @sep@ with 'Text.Megaparsec.match', like
 --
--- > streamEditT (match sep) (\(matchString, parseResult) -> return matchString)
+-- > let editor matchString parseResult = return matchString
+-- > in  streamEditT (match sep) editor inputstring
 --
 -- === Editor context
 --
@@ -274,19 +275,3 @@ streamEdit
 streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 
 
--- HAQ (Hypothetically Asked Questions)
---
--- Q: Is it fast?
---
--- A: Meh. (benchmark comparison to sed).
-
-
--- attoparsec has match
--- http://hackage.haskell.org/package/attoparsec-0.13.2.2/docs/Data-Attoparsec-ByteString.html#v:match
---
--- attoparsec has a Monoid instance for Chunk
--- http://hackage.haskell.org/package/attoparsec-0.13.2.2/docs/Data-Attoparsec-Types.html#t:Chunk
---
--- but attoparsec does not work for String. so.
-
--- https://stackoverflow.com/questions/18957873/haskell-parenthesis-matching-for-find-and-replace
