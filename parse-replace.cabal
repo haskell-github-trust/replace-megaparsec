@@ -37,6 +37,8 @@ maintainer:          jamesbrock@gmail.com
 
 build-type:          Simple
 
+category:            Parsing
+
 description:
 
   Stream editing and find-and-replace with Megaparsec monadic parser
