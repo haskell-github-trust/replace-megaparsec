@@ -86,3 +86,4 @@ test-suite tests
                      , parse-replace
                      , megaparsec
                      , Cabal
+                     , scientific
