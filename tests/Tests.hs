@@ -6,17 +6,19 @@ import Distribution.TestSuite
 import Parsereplace
 import Text.Megaparsec
 import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer
 import Data.Void
-import Data.Scientific
 
 type Parser = Parsec Void String
 
 tests :: IO [Test]
 tests = return
     [ Test $ runParserTest "findAll upperChar"
-        (findAll (upperChar :: Parser Char))
+        (findAllCap (upperChar :: Parser Char))
         ("aBcD" :: String)
         [Left "a", Right ("B", 'B'), Left "c", Right ("D", 'D')]
+    -- check that sepCap can progress even when parser consumes nothing
+    -- and succeeds.
     , Test $ runParserTest "zero-consumption parser"
         (sepCap (many (upperChar :: Parser Char)))
         ("aBcD" :: String)
@@ -29,6 +31,14 @@ tests = return
         (sepCap offsetA)
         ("xxAxx")
         ([Left "xx", Right 2, Left "xx"])
+    , Test $ runParserTest "monad fail"
+        (sepCap (fail "" :: Parser ()))
+        ("xxx")
+        ([Left "xxx"])
+    , Test $ runParserTest "read fail"
+        (sepCap (return (read "a" :: Int) :: Parser Int))
+        ("a")
+        ([Left "a"])
     ]
 
 runParserTest name p input expected = TestInstance
@@ -59,4 +69,5 @@ offsetA = do
     offset <- getOffset
     string "A"
     return offset
+
 

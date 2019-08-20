@@ -37,7 +37,7 @@ module Parsereplace
     -- * Parser combinator
     sepCap
   , findAll
-  , findAllGroup
+  , findAllCap
 
     -- * Running parser
   , streamEditT
@@ -59,7 +59,7 @@ import Control.Monad
 import Text.Megaparsec
 
 -- |
--- == Separate and Capture
+-- == Separate and capture
 --
 -- Parser combinator to find all of the non-overlapping ocurrences
 -- of the pattern @sep@ in a text stream. Separate the stream into sections:
@@ -106,32 +106,40 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
         return x
 
 -- |
--- == Find all occurences, parse and group matches
+-- == Find all occurences, parse and capture pattern matches
 --
 -- Parser combinator for finding all occurences of a pattern in a stream.
 --
 -- Will call 'sepCap' with the 'Text.Megaparsec.match' combinator so that
 -- the text which matched the pattern parser @sep@ will be returned in
 -- the 'Right' sections, along with the result of the parse of @sep@.
-findAll
+--
+-- @
+--     findAllCap sep = 'sepCap' ('Text.Megaparsec.match' sep)
+-- @
+findAllCap
     :: MonadParsec e s m
     => m a -- ^ The pattern matching parser @sep@
     -> m [Either (Tokens s) (Tokens s, a)]
-findAll sep = sepCap (match sep)
+findAllCap sep = sepCap (match sep)
 
 -- |
--- == Find all occurences, group matches
+-- == Find all occurences
 --
 -- Parser combinator for finding all occurences of a pattern in a stream.
 --
--- Will call 'sepCap' with the 'Text.Megaparsec.match' combinator and only
+-- Will call 'sepCap' with the 'Text.Megaparsec.match' combinator and
 -- return the text which matched the pattern parser @sep@ in
--- the 'Right' sections, rather than the result of the parse of @sep@.
-findAllGroup
+-- the 'Right' sections.
+--
+-- @
+--     findAll sep = (fmap.fmap) ('Data.Bifunctor.second' fst) $ 'sepCap' ('Text.Megaparsec.match' sep)
+-- @
+findAll
     :: MonadParsec e s m
     => m a -- ^ The pattern matching parser @sep@
     -> m [Either (Tokens s) (Tokens s)]
-findAllGroup sep = (fmap.fmap) (second fst) $ sepCap (match sep)
+findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 
 
 -- |
@@ -166,8 +174,10 @@ findAllGroup sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- If you want access to the matched string in the @editor@ function,
 -- then combine the pattern parser @sep@ with 'Text.Megaparsec.match', like
 --
--- > let editor matchString parseResult = return matchString
--- > in  streamEditT (match sep) editor inputstring
+-- @
+--     let editor (matchString,parseResult) = return matchString
+--     in streamEditT ('Text.Megaparsec.match' sep) editor inputstring
+-- @
 --
 -- === Editor context
 --
@@ -176,15 +186,6 @@ findAllGroup sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 --
 -- If you want the @editor@ function to remember some state, then run this in
 -- a stateful 'Monad'.
---
--- === Examples
---
--- Replace all carriage-return-newline instances with newline.
---
--- > streamEdit crlf (const "\n")
---
--- Replace all numbers in scientific notation with decimal notation, but
--- only if the value of the number is smaller than 20.
 streamEditT
     :: forall s m a. (Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
     => ParsecT Void s m a
@@ -217,5 +218,4 @@ streamEdit
         -- ^ The input stream of text to be edited.
     -> s
 streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
-
 

@@ -1,12 +1,8 @@
-
 # Parse Replace
 
-
-This module is for
-“pattern capture”
-or
-“stream editing” or “find-and-replace,” using
-[__`Text.Megaparsec`__](http://hackage.haskell.org/package/megaparsec)
+This module is for doing “pattern capture” or
+“stream editing” or “find-and-replace” or “match-and-substitute,” using
+[__Megaparsec__](http://hackage.haskell.org/package/megaparsec)
 parsers instead of the more traditional regular expressions.
 
 It can be used
@@ -27,48 +23,88 @@ or
 [`awk`](https://www.gnu.org/software/gawk/manual/gawk.html).
 
 
-
-
 ## Examples
 
-Given a parser for numbers in simple scientific notation like `"1E2"`:
+Try the examples with `ghci` by
+running `cabal v2-repl` in the `parse-replace/`
+root directory.
 
-    scinum :: Parsec Void String (Double, Integer)
-    scinum = do
-        m <- some digitChar
-        string "E"
-        e <- some digitChar
-        return (read m, read e)
+The examples depend on these imports and definitions.
 
-    import Data.Either
-    import Data.Maybe
+```haskell
+import Parsereplace
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer
+let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+let input = "0xA 000 0xFFFF"
+```
 
-    let input = "1E2 xxx 2E3"
+### Parsing with `sepCap` family of parser combinators
 
-1. Parse the structure of the entire input string:
+Separate the input string into sections which can be parsed as a hexadecimal
+number with a prefix `"0x"`, and sections which can't.
 
-       print $ fromJust $ parseMaybe (findall scinum) input
+```haskell
+parseTest (sepCap hexparser) input
+```
+```haskell
+[Right 10,Left " 000 ",Right 65535]
+```
 
-   Entire input structure:
+Just get the strings sections which match the hexadecimal parser, throw away
+the parsed number.
 
-       [Right ("1E2",(1.0,2)), Left " xxx ", Right ("2E3",(2.0,3))]
+```haskell
+parseTest (findAll hexparser) input
+```
+```haskell
+[Right "0xA",Left " 000 ",Right "0xFFFF"]
+```
 
-2. Capture the parsed pattern matches:
+Capture the parsed hexadecimal number, as well as the string section which
+parses as a hexadecimal number.
 
-       print $ fmap snd
-             $ rights
-             $ fromJust $ parseMaybe (findall scinum) input
+```haskell
+parseTest (findAllCap hexparser) input
+```
+```haskell
+[Right ("0xA",10),Left " 000 ",Right ("0xFFFF",65535)]
+```
 
-   Parsed pattern matches:
+### Edit streams by running parsers with `streamEdit`
 
-       [(1.0,2), (2.0,3)]
+Find all of the string sections *`s`* which can be parsed as a
+hexadecimal number *`r`*,
+and if *`r≤16`*, then replace *`s`* with a decimal number.
 
-3. Replace all of the matched numbers with decimal notation:
+```haskell
+streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) input
+```
+```haskell
+"10 000 0xFFFF"
+```
 
-       print $ foldMap (either id (\(_,(m,e)) -> show $ m * (10 ^^ e)))
-             $ fromJust $ parseMaybe (findall scinum) input
+Replace all carriage-return-newline instances with newline.
 
-   Input string with scientific notation replaced by decimal notation:
+```haskell
+streamEdit crlf (const "\n") "1\r\n\r\n2"
+```
+```haskell
+"1\n\n2"
+```
 
-       "100.0 xxx 2000.0"
+Replace alphabetic characters with the next character in the alphabet.
+
+```haskell
+streamEdit (some letterChar) (fmap succ) "HAL 9000"
+```
+```haskell
+"IBM 9000"
+```
+
+## Alternatives
+
+<http://hackage.haskell.org/package/regex>
+
 
