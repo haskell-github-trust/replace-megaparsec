@@ -72,6 +72,17 @@ parseTest (findAllCap hexparser) input
 [Right ("0xA",10),Left " 000 ",Right ("0xFFFF",65535)]
 ```
 
+List the offset locations of every whitespace pattern.
+
+```haskell
+import Data.Either
+let spaceoffset = getOffset <* space1 :: Parsec Void String Int
+parseTest (return . rights =<< sepCap spaceoffset) " a  b  "
+```
+```haskell
+[0,2,5]
+```
+
 ### Edit streams by running parsers with `streamEdit`
 
 Find all of the string sections *`s`* which can be parsed as a

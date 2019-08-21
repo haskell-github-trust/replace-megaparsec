@@ -8,6 +8,7 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
 import Data.Void
+-- import Control.Applicative
 
 type Parser = Parsec Void String
 
@@ -65,9 +66,5 @@ scinum = do
 
 
 offsetA :: Parser Int
-offsetA = do
-    offset <- getOffset
-    string "A"
-    return offset
-
+offsetA = getOffset <* string "A"
 

@@ -198,7 +198,7 @@ streamEditT
     -> m s
 streamEditT sep editor input = do
     runParserT (sepCap sep) "" input >>= \case
-        (Left err) -> throw err -- parser should never fail, but if it does, throw
+        (Left err) -> throw err -- sepCap can never fail, but if it does, throw
         (Right r) -> fmap fold $ traverse (either return editor) r
 
 
