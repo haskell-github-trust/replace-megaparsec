@@ -29,15 +29,13 @@ Try the examples with `ghci` by
 running `cabal v2-repl` in the `parse-replace/`
 root directory.
 
-The examples depend on these imports and definitions.
+The examples depend on these imports.
 
 ```haskell
 import Parsereplace
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
-let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
-let input = "0xA 000 0xFFFF"
 ```
 
 ### Parsing with `sepCap` family of parser combinators
@@ -46,7 +44,8 @@ Separate the input string into sections which can be parsed as a hexadecimal
 number with a prefix `"0x"`, and sections which can't.
 
 ```haskell
-parseTest (sepCap hexparser) input
+let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+parseTest (sepCap hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
 [Right 10,Left " 000 ",Right 65535]
@@ -56,7 +55,8 @@ Just get the strings sections which match the hexadecimal parser, throw away
 the parsed number.
 
 ```haskell
-parseTest (findAll hexparser) input
+let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+parseTest (findAll hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
 [Right "0xA",Left " 000 ",Right "0xFFFF"]
@@ -66,13 +66,17 @@ Capture the parsed hexadecimal number, as well as the string section which
 parses as a hexadecimal number.
 
 ```haskell
-parseTest (findAllCap hexparser) input
+let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+parseTest (findAllCap hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
 [Right ("0xA",10),Left " 000 ",Right ("0xFFFF",65535)]
 ```
 
-List the offset locations of every whitespace pattern.
+Find all of the sections of the stream which match
+the `Text.Megaparsec.Char.space1` parser which is
+a string of whitespace. Print a list of the offsets of the beginning of
+each section of whitespace.
 
 ```haskell
 import Data.Either
@@ -90,7 +94,8 @@ hexadecimal number *`r`*,
 and if *`r≤16`*, then replace *`s`* with a decimal number.
 
 ```haskell
-streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) input
+let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) "0xA 000 0xFFFF"
 ```
 ```haskell
 "10 000 0xFFFF"
@@ -112,6 +117,29 @@ streamEdit (some letterChar) (fmap succ) "HAL 9000"
 ```
 ```haskell
 "IBM 9000"
+```
+
+Capitalize the third letter in a string. The parser needs to remember how many
+letters it has already found so we'll exec the parser in a State monad.
+
+```haskell
+import Parsereplace
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer
+import Control.Monad.State.Strict
+import Data.Char
+
+:{
+let xparser :: ParsecT Void String String
+    xparser = do
+        x <- letterChar
+        i <- get
+        put (i+1)
+        if i==3 then return [toUpper x] else empty
+:}
+
+flip execState 0 $ streamEditT xparser (fmap toUpper) "x x x x x"
 ```
 
 ## Alternatives
