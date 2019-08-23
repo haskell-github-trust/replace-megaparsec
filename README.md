@@ -87,7 +87,7 @@ parseTest (return . rights =<< sepCap spaceoffset) " a  b  "
 [0,2,5]
 ```
 
-### Edit streams by running parsers with `streamEdit`
+### Edit text strings by running parsers with `streamEdit`
 
 Find all of the string sections *`s`* which can be parsed as a
 hexadecimal number *`r`*,
@@ -120,26 +120,30 @@ streamEdit (some letterChar) (fmap succ) "HAL 9000"
 ```
 
 Capitalize the third letter in a string. The parser needs to remember how many
-letters it has already found so we'll exec the parser in a State monad.
+patterns it has already found so we'll run the parser in a State monad from
+the `mtl` package. (`cabal v2-repl -b mtl`).
 
 ```haskell
 import Parsereplace
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
-import Control.Monad.State.Strict
-import Data.Char
+import qualified Control.Monad.State.Strict as MTL
+import Control.Monad.State.Strict (get, put, evalState)
+import Data.Char (toUpper)
 
-:{
-let xparser :: ParsecT Void String String
+let xparser :: ParsecT Void String (MTL.State Int) String
     xparser = do
         x <- letterChar
         i <- get
         put (i+1)
-        if i==3 then return [toUpper x] else empty
-:}
+        -- parser only succeeds on the third match of a letterChar
+        if i==3 then return (pure x) else empty
 
-flip execState 0 $ streamEditT xparser (fmap toUpper) "x x x x x"
+flip evalState 1 $ streamEditT xparser (return . fmap toUpper) "a a a a a"
+```
+```haskell
+"a a A a a"
 ```
 
 ## Alternatives

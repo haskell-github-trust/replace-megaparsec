@@ -149,9 +149,21 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- of the sections of the stream which match the pattern @sep@, and replaces
 -- them with the result of the @editor@ function.
 --
--- This function is not a “parser combinator,” it is more like
--- an alternate “way to run a parser”, like 'Text.Megaparsec.parse'
+-- This function is not a “parser combinator,” it is
+-- a “way to run a parser”, like 'Text.Megaparsec.parse'
 -- or 'Text.Megaparsec.runParserT'.
+--
+-- === Access the matched section of text in the editor
+--
+-- If you want access to the matched string in the @editor@ function,
+-- then combine the pattern parser @sep@ with 'Text.Megaparsec.match', like
+--
+-- @
+--     let editor (matchString,parseResult) = return matchString
+--     in streamEditT ('Text.Megaparsec.match' sep) editor inputstring
+-- @
+--
+-- === Type constraints
 --
 -- The type of the stream of text that is input must
 -- be @Stream s@ such that @Tokens s ~ s@, because we want
@@ -164,28 +176,23 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- "Data.Bytestring.Lazy",
 -- and "Data.String".
 --
--- We also need the @Monoid s@ instance so that we can @mappend@ the output
+-- We need the @Monoid s@ instance so that we can @mappend@ the output
 -- stream.
 --
--- We need @Typeable s@ and @Show s@ for 'Control.Exception.throw'.
+-- We need @Typeable s@ and @Show s@ for 'Control.Exception.throw'. In theory
+-- this function should never throw an exception, because the 'sepCap' parser
+-- can never fail. If this function ever throws, please report that as a bug.
 --
--- === Access the matched section of text in the editor
+-- === Underlying monad context
 --
--- If you want access to the matched string in the @editor@ function,
--- then combine the pattern parser @sep@ with 'Text.Megaparsec.match', like
+-- Both the parser and the editor function are run in the underlying monad
+-- context.
 --
--- @
---     let editor (matchString,parseResult) = return matchString
---     in streamEditT ('Text.Megaparsec.match' sep) editor inputstring
--- @
+-- If you want to do 'IO' operations in the @editor@ function or the
+-- parser @sep@, then run this in 'IO'.
 --
--- === Editor context
---
--- If you want to do 'IO' operations in the @editor@ function, then run this in
--- 'IO'.
---
--- If you want the @editor@ function to remember some state, then run this in
--- a stateful 'Monad'.
+-- If you want the @editor@ function or the parser @sep@ to remember some state,
+-- then run this in a stateful 'Monad'.
 streamEditT
     :: forall s m a. (Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
     => ParsecT Void s m a
