@@ -180,7 +180,7 @@ streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) "0xA 000 
 Capitalize the third letter in a string. The `capthird` parser searches for
 individual letters, and it needs to remember how many times it has run so
 that it can match successfully only on the third time that it finds a letter.
-To enable the parser to remember how many times it has found a letter, we'll
+To enable the parser to remember how many times it has run, we'll
 compose the parser with a `State` monad from
 the `mtl` package. (Run in `ghci` with `cabal v2-repl -b mtl`).
 

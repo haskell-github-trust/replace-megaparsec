@@ -1,5 +1,5 @@
 # Revision history for parse-replace
 
-## 0.1.0.0 -- YYYY-mm-dd
+## 1.1.0.0 -- 2019-08-24
 
-* First version. Released on an unsuspecting world.
+* First version. Megaparsec.

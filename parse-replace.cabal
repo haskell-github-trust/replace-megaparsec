@@ -1,53 +1,22 @@
 name:                parse-replace
+version:             1.0.0.0
 cabal-version:       1.18
-
-
--- The package version.  See the Haskell package versioning policy (PVP)
--- for standards guiding when and how versions should be incremented.
--- https://pvp.haskell.org
--- PVP summary:      +-+------- breaking API changes
---                   | | +----- non-breaking API additions
---                   | | | +--- code changes with no API change
-version:             0.1.0.0
-
--- A short (one-line) description of the package.
-synopsis:            Stream editor for parsers
-
--- A longer description of the package.
--- description:
-
--- URL for the project homepage or repository.
+synopsis:            Stream editing with parsers
 homepage:            https://github.com/jamesdbrock/parse-replace
-
--- A URL where users can report bugs.
--- bug-reports:
-
--- The license under which the package is released.
+bug-reports:         https://github.com/jamesdbrock/parse-replace/issues
 license:             BSD3
-
--- The file containing the license text.
 license-file:        LICENSE
-
--- The package author(s).
 author:              James Brock
-
--- An email address to which users can send suggestions, bug reports, and
--- patches.
 maintainer:          jamesbrock@gmail.com
-
 build-type:          Simple
-
 category:            Parsing
-
 description:
 
   Stream editing and find-and-replace with Megaparsec monadic parser
   combinators.
 
--- Extra files to be distributed with the package, such as examples or a
--- README.
-extra-doc-files:   CHANGELOG.md
-                 , README.md
+extra-doc-files:     README.md
+                   , CHANGELOG.md
 
 source-repository head
   type:               git
@@ -55,26 +24,11 @@ source-repository head
 
 library
   hs-source-dirs:      src
-  -- Modules exported by the library.
-  -- exposed-modules:
-
-  -- Modules included in this library but not exported.
-  -- other-modules:
-
-  -- LANGUAGE extensions used by modules in this package.
-  -- other-extensions:
-
-  -- Other library packages from which modules are imported.
+  -- rely on megaparsec for version bounds
   build-depends:       base
                      , megaparsec
-
-  -- Directories containing source files.
-  -- hs-source-dirs:
-
-  -- Base language which the package is written in.
   default-language:    Haskell2010
-
-  exposed-modules: Parsereplace
+  exposed-modules:     Parsereplace
 
 test-suite test-string
   type: detailed-0.9
@@ -85,7 +39,6 @@ test-suite test-string
                      , parse-replace
                      , megaparsec
                      , Cabal
-                     , scientific
 
 test-suite test-text
   type: detailed-0.9
@@ -96,7 +49,6 @@ test-suite test-text
                      , parse-replace
                      , megaparsec
                      , Cabal
-                     , scientific
                      , text
 
 test-suite test-bytestring
@@ -108,5 +60,4 @@ test-suite test-bytestring
                      , parse-replace
                      , megaparsec
                      , Cabal
-                     , scientific
                      , bytestring
