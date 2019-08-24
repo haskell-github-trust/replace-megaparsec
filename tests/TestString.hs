@@ -3,7 +3,7 @@
 module TestString ( tests ) where
 
 import Distribution.TestSuite
-import Parsereplace
+import Replace.Megaparsec
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer

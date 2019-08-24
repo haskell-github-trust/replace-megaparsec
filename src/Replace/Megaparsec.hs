@@ -1,5 +1,5 @@
 -- |
--- Module    : Parsereplace
+-- Module    : Replace.Megaparsec
 --
 -- This module is for
 -- “pattern capture”
@@ -32,7 +32,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Parsereplace
+module Replace.Megaparsec
   (
     -- * Parser combinator
     sepCap

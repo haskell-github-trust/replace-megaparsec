@@ -4,7 +4,7 @@
 module TestByteString ( tests ) where
 
 import Distribution.TestSuite
-import Parsereplace
+import Replace.Megaparsec
 import Text.Megaparsec
 import Text.Megaparsec.Byte
 import Text.Megaparsec.Byte.Lexer

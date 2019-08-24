@@ -1,4 +1,4 @@
-# Parse Replace
+# replace-megaparsec
 
 This module is for doing “pattern capture” or
 “stream editing” or “find-and-replace” or “match-and-substitute,” using
@@ -60,14 +60,14 @@ or
 
 ## Examples
 
-Try the examples with `ghci` by
-running `cabal v2-repl` in the `parse-replace/`
+Try the examples in `ghci` by
+running `cabal v2-repl` in the `replace-megaparsec/`
 root directory.
 
 The examples depend on these imports.
 
 ```haskell
-import Parsereplace
+import Replace.Megaparsec
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer

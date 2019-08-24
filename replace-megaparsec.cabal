@@ -1,9 +1,9 @@
-name:                parse-replace
+name:                replace-megaparsec
 version:             1.0.0.0
 cabal-version:       1.18
 synopsis:            Stream editing with parsers
-homepage:            https://github.com/jamesdbrock/parse-replace
-bug-reports:         https://github.com/jamesdbrock/parse-replace/issues
+homepage:            https://github.com/jamesdbrock/replace-megaparsec
+bug-reports:         https://github.com/jamesdbrock/replace-megaparsec/issues
 license:             BSD3
 license-file:        LICENSE
 author:              James Brock
@@ -20,7 +20,7 @@ extra-doc-files:     README.md
 
 source-repository head
   type:               git
-  location:           https://github.com/jamesdbrock/parse-replace.git
+  location:           https://github.com/jamesdbrock/replace-megaparsec.git
 
 library
   hs-source-dirs:      src
@@ -28,7 +28,7 @@ library
   build-depends:       base
                      , megaparsec
   default-language:    Haskell2010
-  exposed-modules:     Parsereplace
+  exposed-modules:     Replace.Megaparsec
 
 test-suite test-string
   type: detailed-0.9
@@ -36,7 +36,7 @@ test-suite test-string
   hs-source-dirs: tests
   default-language:    Haskell2010
   build-depends:       base >=4.12 && < 5.0
-                     , parse-replace
+                     , replace-megaparsec
                      , megaparsec
                      , Cabal
 
@@ -46,7 +46,7 @@ test-suite test-text
   hs-source-dirs: tests
   default-language:    Haskell2010
   build-depends:       base >=4.12 && < 5.0
-                     , parse-replace
+                     , replace-megaparsec
                      , megaparsec
                      , Cabal
                      , text
@@ -57,7 +57,7 @@ test-suite test-bytestring
   hs-source-dirs: tests
   default-language:    Haskell2010
   build-depends:       base >=4.12 && < 5.0
-                     , parse-replace
+                     , replace-megaparsec
                      , megaparsec
                      , Cabal
                      , bytestring
