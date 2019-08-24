@@ -98,3 +98,15 @@ test-suite test-text
                      , Cabal
                      , scientific
                      , text
+
+test-suite test-bytestring
+  type: detailed-0.9
+  test-module: TestByteString
+  hs-source-dirs: tests
+  default-language:    Haskell2010
+  build-depends:       base >=4.12 && < 5.0
+                     , parse-replace
+                     , megaparsec
+                     , Cabal
+                     , scientific
+                     , bytestring
