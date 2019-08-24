@@ -1,6 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 
-module Tests ( tests ) where
+module TestString ( tests ) where
 
 import Distribution.TestSuite
 import Parsereplace
@@ -8,7 +8,6 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
 import Data.Void
--- import Control.Applicative
 
 type Parser = Parsec Void String
 

@@ -76,11 +76,10 @@ library
 
   exposed-modules: Parsereplace
 
-test-suite tests
+test-suite test-string
   type: detailed-0.9
-  test-module: Tests
+  test-module: TestString
   hs-source-dirs: tests
-  -- main-is: Tests.hs
   default-language:    Haskell2010
   build-depends:       base >=4.12 && < 5.0
                      , parse-replace
