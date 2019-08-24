@@ -11,16 +11,18 @@ one would
 use the Python
 [`re.findall`](https://docs.python.org/3/library/re.html#re.findall)
 or
-Unix [`grep`](https://www.gnu.org/software/grep/)
+Perl [`m//`](https://perldoc.perl.org/functions/m.html),
 or
-[perlre](https://perldoc.perl.org/perlre.html).
+Unix [`grep`](https://www.gnu.org/software/grep/).
 
 This module can be used for “find-and-replace” or “stream editing” in the
 same sort of situations in which
 one would use Python
-[`re.sub`](https://docs.python.org/3/library/re.html#re.sub)
-, or Unix
-[`sed` substitute](https://www.gnu.org/software/sed/manual/html_node/The-_0022s_0022-Command.html),
+[`re.sub`](https://docs.python.org/3/library/re.html#re.sub),
+or
+Perl [`s///`](https://perldoc.perl.org/functions/s.html),
+or Unix
+[`sed`](https://www.gnu.org/software/sed/manual/html_node/The-_0022s_0022-Command.html),
 or
 [`awk`](https://www.gnu.org/software/gawk/manual/gawk.html).
 
@@ -31,15 +33,12 @@ Parsers have a nicer syntax than
 which are notoriously
 [difficult to read](https://en.wikipedia.org/wiki/Write-only_language).
 
-Also, Regular expressions are able to pattern-match only
-[Regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
+Regular expressions are only able to pattern-match
+[regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
 grammers.
-Parsers are able pattern-match with
-[Context-free](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
-grammers, and even
-[Context-sensitive](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
-or Turing-complete grammers, if needed. See below for
-an example of lifting a `Parser` into a `State` monad for Context-sensitive
+Parsers are able pattern-match with context-free grammers, and
+even context-sensitive or Turing-complete grammers, if needed. See below for
+an example of lifting a `Parser` into a `State` monad for context-sensitive
 pattern-matching.
 
 Regular expressions can do “group capture” on sections of the matched
@@ -49,9 +48,9 @@ no disagreement between the pattern rules and the rules that we're using
 to build data structures based on the pattern matches. For example, consider
 scanning a string for numbers. A lot of different things can look like a number,
 and can have leading plus or minus signs, or be in scientific notation, or
-hexadecimal, or whatever. If we try to parse all of the numbers out of a string
+have commas, or whatever. If we try to parse all of the numbers out of a string
 using regular expressions, then we have to make sure that the regular expression
-and the string-to-number conversion function agree exactly about what is
+and the string-to-number conversion function agree about exactly what is
 and what isn't a numeric string. We can get into an awkward situation in which
 the regular expression says it has found a numeric string but the
 string-to-number conversion function fails. A typed parser will perform both
@@ -78,7 +77,7 @@ The following examples show how to match a pattern to a string of text
 and deconstruct the string of text by separating it into sections
 which match the pattern, and sections which don't match.
 
-#### Pattern-match only the parsed result
+#### Pattern-match, capture only the parsed result
 
 Separate the input string into sections which can be parsed as a hexadecimal
 number with a prefix `"0x"`, and sections which can't.
@@ -91,7 +90,7 @@ parseTest (sepCap hexparser) "0xA 000 0xFFFF"
 [Right 10,Left " 000 ",Right 65535]
 ```
 
-#### Pattern-match only the matched text
+#### Pattern match, capture only the matched text
 
 Just get the strings sections which match the hexadecimal parser, throw away
 the parsed number.
@@ -104,7 +103,7 @@ parseTest (findAll hexparser) "0xA 000 0xFFFF"
 [Right "0xA",Left " 000 ",Right "0xFFFF"]
 ```
 
-#### Pattern-match the matched text and the parsed result
+#### Pattern match, capture the matched text and the parsed result
 
 Capture the parsed hexadecimal number, as well as the string section which
 parses as a hexadecimal number.
@@ -117,7 +116,7 @@ parseTest (findAllCap hexparser) "0xA 000 0xFFFF"
 [Right ("0xA",10),Left " 000 ",Right ("0xFFFF",65535)]
 ```
 
-#### Pattern-match only the locations of the matched patterns
+#### Pattern match, capture only the locations of the matched patterns
 
 Find all of the sections of the stream which match
 the `Text.Megaparsec.Char.space1` parser (a string of whitespace).
@@ -131,11 +130,6 @@ parseTest (return . rights =<< sepCap spaceoffset) " a  b  "
 ```haskell
 [0,2,5]
 ```
-
-#### Pattern-match recursively
-
-Parse out all nested parentheses. This is a recursive descent parser which
-can't be written as a regular expression.
 
 ### Edit text strings by running parsers with `streamEdit`
 
@@ -179,12 +173,12 @@ streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) "0xA 000 
 "10 000 0xFFFF"
 ```
 
-#### Context-sensitive pattern match, and edit the matches
+#### Context-sensitive pattern match and edit the matches
 
-Capitalize the third letter in a string. The parser looks for individual
-letters, and it needs to remember how many times it has run so that it can
-return success only on the third time that it succeeds in finding a letter.
-To allow the parser to remember how many times it has matched a latter, we'll
+Capitalize the third letter in a string. The `capthird` parser searches for
+individual letters, and it needs to remember how many times it has run so
+that it can match successfully only on the third time that it finds a letter.
+To allow the parser to remember how many times it has found a letter, we'll
 compose the parser with a `State` monad from
 the `mtl` package. (`cabal v2-repl -b mtl`).
 
@@ -198,14 +192,14 @@ import qualified Control.Monad.State.Strict as MTL
 import Control.Monad.State.Strict (get, put, evalState)
 import Data.Char (toUpper)
 
-let xparser :: ParsecT Void String (MTL.State Int) String
-    xparser = do
+let capthird :: ParsecT Void String (MTL.State Int) String
+    capthird = do
         x <- letterChar
         i <- get
         put (i+1)
         if i==3 then return [x] else empty
 
-flip evalState 1 $ streamEditT xparser (return . fmap toUpper) "a a a a a"
+flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 ```
 ```haskell
 "a a A a a"
@@ -215,4 +209,4 @@ flip evalState 1 $ streamEditT xparser (return . fmap toUpper) "a a a a a"
 
 <http://hackage.haskell.org/package/regex>
 
-
+<http://hackage.haskell.org/package/pipes-parse>
