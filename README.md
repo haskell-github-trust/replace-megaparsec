@@ -1,23 +1,22 @@
 # replace-megaparsec
 
-This module is for doing “pattern capture” or
-“stream editing” or “find-and-replace” or “match-and-substitute,” using
+__replace-megaparsec__ is for finding text patterns, and also editing and
+replacing the found patterns.
+This activity is traditionally done with regular expressions,
+but __replace-megaparsec__ uses
 [__Megaparsec__](http://hackage.haskell.org/package/megaparsec)
-parsers instead of the more traditional regular expressions.
+parsers instead for the pattern matching.
 
-It can be used
-in the same sort of “pattern capture” situations in which
-one would
-use the Python
+__replace-megaparsec__ can be used in the same sort of “pattern capture”
+or “find all” situations in which one would use Python
 [`re.findall`](https://docs.python.org/3/library/re.html#re.findall)
 or
 Perl [`m//`](https://perldoc.perl.org/functions/m.html),
 or
 Unix [`grep`](https://www.gnu.org/software/grep/).
 
-This module can be used for “find-and-replace” or “stream editing” in the
-same sort of situations in which
-one would use Python
+__replace-megaparsec__ can be used in the same sort of “stream editing”
+or “search-and-replace” situations in which one would use Python
 [`re.sub`](https://docs.python.org/3/library/re.html#re.sub),
 or
 Perl [`s///`](https://perldoc.perl.org/functions/s.html),
@@ -161,7 +160,7 @@ streamEdit (some letterChar) (fmap succ) "HAL 9000"
 "IBM 9000"
 ```
 
-#### Pattern match and edit the matches
+#### Pattern match and maybe edit the matches, or maybe leave them alone
 
 Find all of the string sections *`s`* which can be parsed as a
 hexadecimal number *`r`*,

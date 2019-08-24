@@ -1,30 +1,31 @@
 -- |
 -- Module    : Replace.Megaparsec
 --
--- This module is for
--- “pattern capture”
--- or
--- “stream editing” or “find-and-replace,” using "Text.Megaparsec" parsers
--- instead of the more traditional regular expressions.
+-- __Replace.Megaparsec__ is for finding text patterns, and also editing and
+-- replacing the found patterns.
+-- This activity is traditionally done with regular expressions,
+-- but __Replace.Megaparsec__ uses "Text.Megaparsec" parsers instead for
+-- the pattern matching.
 --
--- It can be used
--- in the same sort of “pattern capture” situations in which
--- one would
--- use the Python
--- <https://docs.python.org/3/library/re.html#re.findall re.findall>
+-- __Replace.Megaparsec__ can be used in the same sort of “pattern capture”
+-- or “find all” situations in which one would use Python
+-- <https://docs.python.org/3/library/re.html#re.findall re.findall>,
+-- or Perl
+-- <https://perldoc.perl.org/functions/m.html m//>,
 -- or Unix
 -- <https://www.gnu.org/software/grep/ grep>.
 --
--- This module can be used for “find-and-replace” or “stream editing” in the
--- same sort of situations in which
--- one would use Python
--- <https://docs.python.org/3/library/re.html#re.sub re.sub>
--- , or Unix
--- <https://www.gnu.org/software/sed/manual/html_node/The-_0022s_0022-Command.html sed substitute>,
+-- __Replace.Megaparsec__ can be used in the same sort of “stream editing”
+-- or “search-and-replace” situations in which one would use Python
+-- <https://docs.python.org/3/library/re.html#re.sub re.sub>,
+-- or Perl
+-- <https://perldoc.perl.org/functions/s.html s///>,
+-- or Unix
+-- <https://www.gnu.org/software/sed/manual/html_node/The-_0022s_0022-Command.html sed>,
 -- or
 -- <https://www.gnu.org/software/gawk/manual/gawk.html awk>.
-
-
+--
+-- See the __replace-megaparsec__ package README for usage examples.
 
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
