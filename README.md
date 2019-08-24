@@ -132,6 +132,11 @@ parseTest (return . rights =<< sepCap spaceoffset) " a  b  "
 [0,2,5]
 ```
 
+#### Pattern-match recursively
+
+Parse out all nested parentheses. This is a recursive descent parser which
+can't be written as a regular expression.
+
 ### Edit text strings by running parsers with `streamEdit`
 
 The following examples show how to search for a pattern in a string of text
