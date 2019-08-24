@@ -11,7 +11,9 @@ one would
 use the Python
 [`re.findall`](https://docs.python.org/3/library/re.html#re.findall)
 or
-Unix [`grep`](https://www.gnu.org/software/grep/).
+Unix [`grep`](https://www.gnu.org/software/grep/)
+or
+[perlre](https://perldoc.perl.org/perlre.html).
 
 This module can be used for “find-and-replace” or “stream editing” in the
 same sort of situations in which
@@ -22,6 +24,38 @@ one would use Python
 or
 [`awk`](https://www.gnu.org/software/gawk/manual/gawk.html).
 
+## Why would we want to do pattern matching and substitution with parsers instead of regular expressions?
+
+Parsers have a nicer syntax than
+[regular expressions](https://en.wikipedia.org/wiki/Regular_expression),
+which are notoriously
+[difficult to read](https://en.wikipedia.org/wiki/Write-only_language).
+
+Also, Regular expressions are able to pattern-match only
+[Regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
+grammers.
+Parsers are able pattern-match with
+[Context-free](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
+grammers, and even
+[Context-sensitive](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
+or Turing-complete grammers, if needed. See below for
+an example of lifting a `Parser` into a `State` monad for Context-sensitive
+pattern-matching.
+
+Regular expressions can do “group capture” on sections of the matched
+pattern, but they can only return stringy lists of the capture groups. Parsers
+can construct typed data structures based on the capture groups, guaranteeing
+no disagreement between the pattern rules and the rules that we're using
+to build data structures based on the pattern matches. For example, consider
+scanning a string for numbers. A lot of different things can look like a number,
+and can have leading plus or minus signs, or be in scientific notation, or
+hexadecimal, or whatever. If we try to parse all of the numbers out of a string
+using regular expressions, then we have to make sure that the regular expression
+and the string-to-number conversion function agree exactly about what is
+and what isn't a numeric string. We can get into an awkward situation in which
+the regular expression says it has found a numeric string but the
+string-to-number conversion function fails. A typed parser will perform both
+the pattern match and the conversion, so it will never be in that situation.
 
 ## Examples
 
@@ -40,6 +74,12 @@ import Text.Megaparsec.Char.Lexer
 
 ### Parsing with `sepCap` family of parser combinators
 
+The following examples show how to match a pattern to a string of text
+and deconstruct the string of text by separating it into sections
+which match the pattern, and sections which don't match.
+
+#### Pattern-match only the parsed result
+
 Separate the input string into sections which can be parsed as a hexadecimal
 number with a prefix `"0x"`, and sections which can't.
 
@@ -50,6 +90,8 @@ parseTest (sepCap hexparser) "0xA 000 0xFFFF"
 ```haskell
 [Right 10,Left " 000 ",Right 65535]
 ```
+
+#### Pattern-match only the matched text
 
 Just get the strings sections which match the hexadecimal parser, throw away
 the parsed number.
@@ -62,6 +104,8 @@ parseTest (findAll hexparser) "0xA 000 0xFFFF"
 [Right "0xA",Left " 000 ",Right "0xFFFF"]
 ```
 
+#### Pattern-match the matched text and the parsed result
+
 Capture the parsed hexadecimal number, as well as the string section which
 parses as a hexadecimal number.
 
@@ -73,10 +117,11 @@ parseTest (findAllCap hexparser) "0xA 000 0xFFFF"
 [Right ("0xA",10),Left " 000 ",Right ("0xFFFF",65535)]
 ```
 
+#### Pattern-match only the locations of the matched patterns
+
 Find all of the sections of the stream which match
-the `Text.Megaparsec.Char.space1` parser which is
-a string of whitespace. Print a list of the offsets of the beginning of
-each section of whitespace.
+the `Text.Megaparsec.Char.space1` parser (a string of whitespace).
+Print a list of the offsets of the beginning of every pattern match.
 
 ```haskell
 import Data.Either
@@ -88,6 +133,34 @@ parseTest (return . rights =<< sepCap spaceoffset) " a  b  "
 ```
 
 ### Edit text strings by running parsers with `streamEdit`
+
+The following examples show how to search for a pattern in a string of text
+and then edit the string of text to substitute in some replacement text
+for the matched patterns.
+
+#### Pattern match and replace with a constant
+
+Replace all carriage-return-newline instances with newline.
+
+```haskell
+streamEdit crlf (const "\n") "1\r\n\r\n2"
+```
+```haskell
+"1\n\n2"
+```
+
+#### Pattern match and edit the matches
+
+Replace alphabetic characters with the next character in the alphabet.
+
+```haskell
+streamEdit (some letterChar) (fmap succ) "HAL 9000"
+```
+```haskell
+"IBM 9000"
+```
+
+#### Pattern match and edit the matches
 
 Find all of the string sections *`s`* which can be parsed as a
 hexadecimal number *`r`*,
@@ -101,27 +174,15 @@ streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) "0xA 000 
 "10 000 0xFFFF"
 ```
 
-Replace all carriage-return-newline instances with newline.
+#### Context-sensitive pattern match, and edit the matches
 
-```haskell
-streamEdit crlf (const "\n") "1\r\n\r\n2"
-```
-```haskell
-"1\n\n2"
-```
-
-Replace alphabetic characters with the next character in the alphabet.
-
-```haskell
-streamEdit (some letterChar) (fmap succ) "HAL 9000"
-```
-```haskell
-"IBM 9000"
-```
-
-Capitalize the third letter in a string. The parser needs to remember how many
-patterns it has already found so we'll run the parser in a State monad from
+Capitalize the third letter in a string. The parser looks for individual
+letters, and it needs to remember how many times it has run so that it can
+return success only on the third time that it succeeds in finding a letter.
+To allow the parser to remember how many times it has matched a latter, we'll
+compose the parser with a `State` monad from
 the `mtl` package. (`cabal v2-repl -b mtl`).
+
 
 ```haskell
 import Parsereplace
@@ -137,8 +198,7 @@ let xparser :: ParsecT Void String (MTL.State Int) String
         x <- letterChar
         i <- get
         put (i+1)
-        -- parser only succeeds on the third match of a letterChar
-        if i==3 then return (pure x) else empty
+        if i==3 then return [x] else empty
 
 flip evalState 1 $ streamEditT xparser (return . fmap toUpper) "a a a a a"
 ```
