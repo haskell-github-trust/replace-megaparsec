@@ -81,6 +81,15 @@ import Text.Megaparsec
 -- will be treated by @sepCap@ as @some digitChar@, and required to match
 -- at least one digit.
 --
+-- This @sepCap@ parser combinator is the basis for all of the other
+-- features of this module. It is similar to the @sep*@ family of functions
+-- found in
+-- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html parser-combinators>
+-- and
+-- <http://hackage.haskell.org/package/parsers/docs/Text-Parser-Combinators.html parsers>
+-- but, importantly, it returns the parsed result of the @sep@ parser instead
+-- of throwing it away.
+--
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
@@ -180,19 +189,20 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- stream.
 --
 -- We need @Typeable s@ and @Show s@ for 'Control.Exception.throw'. In theory
--- this function should never throw an exception, because the 'sepCap' parser
+-- this function should never throw an exception, because it only throws
+-- when the 'sepCap' parser fails, and the 'sepCap' parser
 -- can never fail. If this function ever throws, please report that as a bug.
 --
 -- === Underlying monad context
 --
--- Both the parser and the editor function are run in the underlying monad
--- context.
+-- Both the parser @sep@ and the @editor@ function are run in the underlying
+-- monad context.
 --
 -- If you want to do 'IO' operations in the @editor@ function or the
 -- parser @sep@, then run this in 'IO'.
 --
 -- If you want the @editor@ function or the parser @sep@ to remember some state,
--- then run this in a stateful 'Monad'.
+-- then run this in a stateful monad.
 streamEditT
     :: forall s m a. (Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
     => ParsecT Void s m a
