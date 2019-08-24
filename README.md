@@ -207,3 +207,11 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 <http://hackage.haskell.org/package/regex>
 
 <http://hackage.haskell.org/package/pipes-parse>
+
+<http://hackage.haskell.org/package/stringsearch>
+
+<http://hackage.haskell.org/package/substring-parser>
+
+<http://hackage.haskell.org/package/pcre-utils>
+
+<http://hackage.haskell.org/package/template>
