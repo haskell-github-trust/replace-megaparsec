@@ -1,5 +1,7 @@
 # replace-megaparsec
 
+[![Hackage](https://img.shields.io/hackage/v/replace-megaparsec.svg?style=flat)](https://hackage.haskell.org/package/replace-megaparsec)
+
 __replace-megaparsec__ is for finding text patterns, and also editing and
 replacing the found patterns.
 This activity is traditionally done with regular expressions,
