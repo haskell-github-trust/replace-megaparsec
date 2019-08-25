@@ -112,7 +112,7 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
         offset1 <- getOffset
         x <- p
         offset2 <- getOffset
-        when (offset1 == offset2) empty
+        when (offset1 >= offset2) empty
         return x
 
 -- |
