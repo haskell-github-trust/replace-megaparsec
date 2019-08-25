@@ -86,7 +86,7 @@ The following examples show how to match a pattern to a string of text
 and deconstruct the string of text by separating it into sections
 which match the pattern, and sections which don't match.
 
-#### Pattern-match, capture only the parsed result
+#### Pattern match, capture only the parsed result
 
 Separate the input string into sections which can be parsed as a hexadecimal
 number with a prefix `"0x"`, and sections which can't.
@@ -172,7 +172,9 @@ streamEdit (some letterChar) (fmap succ) "HAL 9000"
 
 Find all of the string sections *`s`* which can be parsed as a
 hexadecimal number *`r`*,
-and if *`r≤16`*, then replace *`s`* with a decimal number.
+and if *`r≤16`*, then replace *`s`* with a decimal number. Uses the
+[`match`](https://hackage.haskell.org/package/megaparsec/docs/Text-Megaparsec.html#v:match)
+combinator.
 
 ```haskell
 let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
