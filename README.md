@@ -29,7 +29,7 @@ or
 
 ## Why would we want to do pattern matching and substitution with parsers instead of regular expressions?
 
-* Parsers have a nicer syntax than
+* Haskell parsers have a nicer syntax than
   [regular expressions](https://en.wikipedia.org/wiki/Regular_expression),
   which are notoriously
   [difficult to read](https://en.wikipedia.org/wiki/Write-only_language).
@@ -39,7 +39,7 @@ or
   can construct typed data structures based on the capture groups, guaranteeing
   no disagreement between the pattern rules and the rules that we're using
   to build data structures based on the pattern matches.
-  
+
   For example, consider
   scanning a string for numbers. A lot of different things can look like a number,
   and can have leading plus or minus signs, or be in scientific notation, or
@@ -55,9 +55,15 @@ or
   [regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
   grammers.
   Parsers are able pattern-match with context-free grammers, and
-  even context-sensitive or Turing-complete grammers, if needed. See below for
+  even context-sensitive or Turing grammers, if needed. See below for
   an example of lifting a `Parser` into a `State` monad for context-sensitive
   pattern-matching.
+
+  The replacement expression for a traditional regular expression-based
+  substitution command is usually just a simple string template in which
+  the *Nth* “capture group” can be inserted with the syntax `\N`. With
+  this library, instead of a template, we get
+  an `editor` function which can perform any computation, including IO.
 
 ## Examples
 
@@ -216,3 +222,11 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 <http://hackage.haskell.org/package/pcre-utils>
 
 <http://hackage.haskell.org/package/template>
+
+## Motivation
+
+I wanted to scan a Markdown document and find tokens inside backticks that
+look like a Haskell identifier, then look up the identifier in Hoogle to
+see if it has a definition in __base__, and if so, insert a Hackage link
+for the identifier into the Markdown. I couldn't find a simple and
+obvious way to do that with any existing technology.
