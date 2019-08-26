@@ -1,6 +1,8 @@
 # replace-megaparsec
 
 [![Hackage](https://img.shields.io/hackage/v/replace-megaparsec.svg?style=flat)](https://hackage.haskell.org/package/replace-megaparsec)
+[![Stackage Nightly](http://stackage.org/package/replace-megaparsec/badge/nightly)](http://stackage.org/nightly/package/replace-megaparsec)
+[![Stackage LTS](http://stackage.org/package/replace-megaparsec/badge/lts)](http://stackage.org/lts/package/replace-megaparsec)
 
 __replace-megaparsec__ is for finding text patterns, and also editing and
 replacing the found patterns.
