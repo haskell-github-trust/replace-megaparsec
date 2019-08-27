@@ -153,10 +153,10 @@ for the matched patterns.
 Replace all carriage-return-newline instances with newline.
 
 ```haskell
-streamEdit crlf (const "\n") "1\r\n\r\n2"
+streamEdit (string "\r\n") (const "\n") "1\r\n2\r\n"
 ```
 ```haskell
-"1\n\n2"
+"1\n2\n"
 ```
 
 #### Pattern match and edit the matches
