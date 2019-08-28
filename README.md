@@ -94,7 +94,7 @@ Separate the input string into sections which can be parsed as a hexadecimal
 number with a prefix `"0x"`, and sections which can't.
 
 ```haskell
-let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
 parseTest (sepCap hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
@@ -107,7 +107,7 @@ Just get the strings sections which match the hexadecimal parser, throw away
 the parsed number.
 
 ```haskell
-let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
 parseTest (findAll hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
@@ -120,7 +120,7 @@ Capture the parsed hexadecimal number, as well as the string section which
 parses as a hexadecimal number.
 
 ```haskell
-let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
 parseTest (findAllCap hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
@@ -153,7 +153,7 @@ for the matched patterns.
 Replace all carriage-return-newline instances with newline.
 
 ```haskell
-streamEdit (string "\r\n") (const "\n") "1\r\n2\r\n"
+streamEdit (chunk "\r\n") (const "\n") "1\r\n2\r\n"
 ```
 ```haskell
 "1\n2\n"
@@ -179,7 +179,7 @@ and if *`r≤16`*, then replace *`s`* with a decimal number. Uses the
 combinator.
 
 ```haskell
-let hexparser = string "0x" >> hexadecimal :: Parsec Void String Integer
+let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
 streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) "0xA 000 0xFFFF"
 ```
 ```haskell

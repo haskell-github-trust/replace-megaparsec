@@ -67,11 +67,11 @@ scinum = do
     -- but if we use the Text.Megaparsec.Byte.Lexer.float, then it consumes
     -- the "E" and the exponent. Whatever, doesn't really matter for this test.
     m <- fromIntegral <$> decimal
-    string "E"
+    chunk "E"
     e <- decimal
     return (m, e)
 
 
 offsetA :: Parser Int
-offsetA = getOffset <* string "A"
+offsetA = getOffset <* chunk "A"
 

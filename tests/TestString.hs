@@ -59,11 +59,11 @@ runParserTest name p input expected = TestInstance
 scinum :: Parser (Double, Integer)
 scinum = do
     m <- some digitChar
-    string "E"
+    chunk "E"
     e <- some digitChar
     return (read m, read e)
 
 
 offsetA :: Parser Int
-offsetA = getOffset <* string "A"
+offsetA = getOffset <* chunk "A"
 
