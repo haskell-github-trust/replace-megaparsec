@@ -1,5 +1,5 @@
 name:                replace-megaparsec
-version:             1.0.0.0
+version:             1.0.1.0
 cabal-version:       1.18
 synopsis:            Stream editing with parsers
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
