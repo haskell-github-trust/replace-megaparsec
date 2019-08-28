@@ -35,7 +35,7 @@ test-suite test-string
   test-module: TestString
   hs-source-dirs: tests
   default-language:    Haskell2010
-  build-depends:       base >=4.12 && < 5.0
+  build-depends:       base
                      , replace-megaparsec
                      , megaparsec
                      , Cabal
@@ -45,7 +45,7 @@ test-suite test-text
   test-module: TestText
   hs-source-dirs: tests
   default-language:    Haskell2010
-  build-depends:       base >=4.12 && < 5.0
+  build-depends:       base
                      , replace-megaparsec
                      , megaparsec
                      , Cabal
@@ -56,7 +56,7 @@ test-suite test-bytestring
   test-module: TestByteString
   hs-source-dirs: tests
   default-language:    Haskell2010
-  build-depends:       base >=4.12 && < 5.0
+  build-depends:       base
                      , replace-megaparsec
                      , megaparsec
                      , Cabal
