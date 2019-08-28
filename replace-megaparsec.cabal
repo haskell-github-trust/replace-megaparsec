@@ -25,7 +25,7 @@ source-repository head
 library
   hs-source-dirs:      src
   -- rely on megaparsec for version bounds
-  build-depends:       base
+  build-depends:       base >= 4.0 && < 5.0
                      , megaparsec
   default-language:    Haskell2010
   exposed-modules:     Replace.Megaparsec
@@ -36,7 +36,7 @@ test-suite test-string
   test-module:        TestString
   hs-source-dirs:     tests
   default-language:     Haskell2010
-  build-depends:        base
+  build-depends:        base >= 4.0 && < 5.0
                       , replace-megaparsec
                       , megaparsec
                       , Cabal
@@ -46,7 +46,7 @@ test-suite test-text
   test-module:        TestText
   hs-source-dirs:     tests
   default-language:     Haskell2010
-  build-depends:        base
+  build-depends:        base >= 4.0 && < 5.0
                       , replace-megaparsec
                       , megaparsec
                       , Cabal
@@ -57,7 +57,7 @@ test-suite test-bytestring
   test-module:        TestByteString
   hs-source-dirs:     tests
   default-language:     Haskell2010
-  build-depends:        base
+  build-depends:        base >= 4.0 && < 5.0
                       , replace-megaparsec
                       , megaparsec
                       , Cabal
