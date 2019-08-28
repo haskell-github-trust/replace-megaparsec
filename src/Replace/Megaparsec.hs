@@ -48,7 +48,6 @@ where
 
 
 import Data.Void
-import Data.Maybe
 import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Proxy

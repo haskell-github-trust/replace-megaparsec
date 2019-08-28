@@ -29,35 +29,36 @@ library
                      , megaparsec
   default-language:    Haskell2010
   exposed-modules:     Replace.Megaparsec
+  ghc-options:         -O2 -Wall
 
 test-suite test-string
-  type: detailed-0.9
-  test-module: TestString
-  hs-source-dirs: tests
-  default-language:    Haskell2010
-  build-depends:       base
-                     , replace-megaparsec
-                     , megaparsec
-                     , Cabal
+  type:               detailed-0.9
+  test-module:        TestString
+  hs-source-dirs:     tests
+  default-language:     Haskell2010
+  build-depends:        base
+                      , replace-megaparsec
+                      , megaparsec
+                      , Cabal
 
 test-suite test-text
-  type: detailed-0.9
-  test-module: TestText
-  hs-source-dirs: tests
-  default-language:    Haskell2010
-  build-depends:       base
-                     , replace-megaparsec
-                     , megaparsec
-                     , Cabal
-                     , text
+  type:               detailed-0.9
+  test-module:        TestText
+  hs-source-dirs:     tests
+  default-language:     Haskell2010
+  build-depends:        base
+                      , replace-megaparsec
+                      , megaparsec
+                      , Cabal
+                      , text
 
 test-suite test-bytestring
-  type: detailed-0.9
-  test-module: TestByteString
-  hs-source-dirs: tests
-  default-language:    Haskell2010
-  build-depends:       base
-                     , replace-megaparsec
-                     , megaparsec
-                     , Cabal
-                     , bytestring
+  type:               detailed-0.9
+  test-module:        TestByteString
+  hs-source-dirs:     tests
+  default-language:     Haskell2010
+  build-depends:        base
+                      , replace-megaparsec
+                      , megaparsec
+                      , Cabal
+                      , bytestring
