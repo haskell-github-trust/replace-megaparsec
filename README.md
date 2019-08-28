@@ -8,7 +8,7 @@ __replace-megaparsec__ is for finding text patterns, and also editing and
 replacing the found patterns.
 This activity is traditionally done with regular expressions,
 but __replace-megaparsec__ uses
-[__Megaparsec__](http://hackage.haskell.org/package/megaparsec)
+[__megaparsec__](http://hackage.haskell.org/package/megaparsec)
 parsers instead for the pattern matching.
 
 __replace-megaparsec__ can be used in the same sort of “pattern capture”
@@ -238,14 +238,32 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
    backtrack each time. That's
    [a slow activity](https://markkarpov.com/megaparsec/megaparsec.html#writing-efficient-parsers).
 
-2. *Could we write this library for __Parsec__?*
+   Consider a 1 megabyte file that consists of `"foo"` every ten bytes:
+
+   ```
+          foo       foo       foo       foo       foo       foo ...
+   ```
+
+   We want to replace all the `"foo"` with `"bar"`. We would expect `sed`
+   to be about at the upper bound of speed for this task, so here
+   are the `perf` results when we compare `sed`
+   to __replace-megaparsec__ with some different stream types.
+
+   | Method           | `perf task-clock` |
+   | :---              |    ---: |
+   | `sed s/foo/bar/g` | 39 msec |
+   | `streamEdit String` | 793 msec |
+   | `streamEdit ByteString` | 513 msec |
+   | `streamEdit Text`       | 428 msec |
+
+2. *Could we write this library for __parsec__?*
 
    No, because the
    [`match`](https://hackage.haskell.org/package/megaparsec/docs/Text-Megaparsec.html#v:match)
-   combinator doesn't exist for Parsec. (I can't find it anywhere.
+   combinator doesn't exist for __parsec__. (I can't find it anywhere.
    [Can it be written?](http://www.serpentine.com/blog/2014/05/31/attoparsec/#from-strings-to-buffers-and-cursors))
 
-3. *Could we write this library for __Attoparsec__?*
+3. *Could we write this library for __attoparsec__?*
 
    I think so, but I wouldn't expect much of a speed improvement, because
-   `sepCap` is a fundamentally slow activity.
+   again, `sepCap` is a fundamentally slow activity.

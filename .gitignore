@@ -1,2 +1,3 @@
 dist-newstyle
 .ghc.environment.*
+criterion-report.html

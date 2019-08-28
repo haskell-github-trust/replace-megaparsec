@@ -6,7 +6,6 @@ import Distribution.TestSuite
 import Replace.Megaparsec
 import Text.Megaparsec
 import Text.Megaparsec.Char
-import Text.Megaparsec.Char.Lexer
 import Data.Void
 
 type Parser = Parsec Void String
@@ -40,30 +39,30 @@ tests = return
         ("a")
         ([Left "a"])
     ]
+  where
+    runParserTest nam p input expected = TestInstance
+            { run = do
+                case runParser p "" input of
+                    Left e -> return (Finished $ Fail $ show e)
+                    Right output ->
+                        if (output == expected)
+                            then return (Finished Pass)
+                            else return (Finished $ Fail
+                                        $ show output ++ " ≠ " ++ show expected)
+            , name = nam
+            , tags = []
+            , options = []
+            , setOption = \_ _ -> Left "no options supported"
+            }
 
-runParserTest name p input expected = TestInstance
-        { run = do
-            case runParser p "" input of
-                Left e -> return (Finished $ Fail $ show e)
-                Right output ->
-                    if (output == expected)
-                        then return (Finished Pass)
-                        else return (Finished $ Fail
-                                    $ show output ++ " ≠ " ++ show expected)
-        , name = name
-        , tags = []
-        , options = []
-        , setOption = \_ _ -> Left "no options supported"
-        }
-
-scinum :: Parser (Double, Integer)
-scinum = do
-    m <- some digitChar
-    chunk "E"
-    e <- some digitChar
-    return (read m, read e)
+    scinum :: Parser (Double, Integer)
+    scinum = do
+        m <- some digitChar
+        _ <- chunk "E"
+        e <- some digitChar
+        return (read m, read e)
 
 
-offsetA :: Parser Int
-offsetA = getOffset <* chunk "A"
+    offsetA :: Parser Int
+    offsetA = getOffset <* chunk "A"
 

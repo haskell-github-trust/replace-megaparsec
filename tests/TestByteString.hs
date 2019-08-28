@@ -9,24 +9,23 @@ import Text.Megaparsec
 import Text.Megaparsec.Byte
 import Text.Megaparsec.Byte.Lexer
 import Data.Void
-import qualified Data.ByteString as BS
-import Data.ByteString (ByteString)
+import qualified Data.ByteString as B
 import Data.ByteString.Internal (c2w)
 import GHC.Word
 
-type Parser = Parsec Void ByteString
+type Parser = Parsec Void B.ByteString
 
 tests :: IO [Test]
 tests = return
     [ Test $ runParserTest "findAll upperChar"
         (findAllCap (upperChar :: Parser Word8))
-        ("aBcD" :: ByteString)
+        ("aBcD" :: B.ByteString)
         [Left "a", Right ("B", c2w 'B'), Left "c", Right ("D", c2w 'D')]
     -- check that sepCap can progress even when parser consumes nothing
     -- and succeeds.
     , Test $ runParserTest "zero-consumption parser"
         (sepCap (many (upperChar :: Parser Word8)))
-        ("aBcD" :: ByteString)
+        ("aBcD" :: B.ByteString)
         [Left "a", Right [c2w 'B'], Left "c", Right [c2w 'D']]
     , Test $ runParserTest "scinum"
         (sepCap scinum)
@@ -45,33 +44,33 @@ tests = return
         ("a")
         ([Left "a"])
     ]
+  where
+    runParserTest nam p input expected = TestInstance
+            { run = do
+                case runParser p "" input of
+                    Left e -> return (Finished $ Fail $ show e)
+                    Right output ->
+                        if (output == expected)
+                            then return (Finished Pass)
+                            else return (Finished $ Fail
+                                        $ show output ++ " ≠ " ++ show expected)
+            , name = nam
+            , tags = []
+            , options = []
+            , setOption = \_ _ -> Left "no options supported"
+            }
 
-runParserTest name p input expected = TestInstance
-        { run = do
-            case runParser p "" input of
-                Left e -> return (Finished $ Fail $ show e)
-                Right output ->
-                    if (output == expected)
-                        then return (Finished Pass)
-                        else return (Finished $ Fail
-                                    $ show output ++ " ≠ " ++ show expected)
-        , name = name
-        , tags = []
-        , options = []
-        , setOption = \_ _ -> Left "no options supported"
-        }
-
-scinum :: Parser (Double, Integer)
-scinum = do
-    -- This won't parse mantissas that contain a decimal point,
-    -- but if we use the Text.Megaparsec.Byte.Lexer.float, then it consumes
-    -- the "E" and the exponent. Whatever, doesn't really matter for this test.
-    m <- fromIntegral <$> decimal
-    chunk "E"
-    e <- decimal
-    return (m, e)
+    scinum :: Parser (Double, Integer)
+    scinum = do
+        -- This won't parse mantissas that contain a decimal point,
+        -- but if we use the Text.Megaparsec.Byte.Lexer.float, then it consumes
+        -- the "E" and the exponent. Whatever, doesn't really matter for this test.
+        m <- (fromIntegral :: Integer -> Double) <$> decimal
+        _ <- chunk "E"
+        e <- decimal
+        return (m, e)
 
 
-offsetA :: Parser Int
-offsetA = getOffset <* chunk "A"
+    offsetA :: Parser Int
+    offsetA = getOffset <* chunk "A"
 
