@@ -236,3 +236,24 @@ look like a Haskell identifier, then look up the identifier in Hoogle to
 see if it has a definition in __base__, and if so, insert a Hackage link
 for the identifier into the Markdown. I couldn't find a simple and
 obvious way to do that with any existing technology.
+
+## Hypothetically Asked Questions
+
+1. *Is it fast?*
+
+   lol not really. `sepCap` is fundamentally about consuming the stream one
+   token at a time while we try and fail to run a parser and then
+   backtrack each time. That's
+   [a slow activity](https://markkarpov.com/megaparsec/megaparsec.html#writing-efficient-parsers).
+
+2. *Could we write this library for __Parsec__?*
+
+   No, because the
+   [`match`](https://hackage.haskell.org/package/megaparsec/docs/Text-Megaparsec.html#v:match)
+   combinator doesn't exist for Parsec. (I can't find it anywhere.
+   [Can it be written?](http://www.serpentine.com/blog/2014/05/31/attoparsec/#from-strings-to-buffers-and-cursors))
+
+3. *Could we write this library for __Attoparsec__?*
+
+   I think so, but I wouldn't expect much of a speed improvement, because
+   `sepCap` is a fundamentally slow activity.
