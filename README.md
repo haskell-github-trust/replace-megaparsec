@@ -227,6 +227,8 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 
 <http://hackage.haskell.org/package/template>
 
+<http://hackage.haskell.org/package/regex-applicative>
+
 ## Motivation
 
 I wanted to scan a Markdown document and find tokens inside backticks that

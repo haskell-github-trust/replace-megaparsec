@@ -41,6 +41,8 @@ module Replace.Megaparsec
   , findAllCap
 
     -- * Running parser
+    --
+    -- Ways to run a parser
   , streamEditT
   , streamEdit
   )
@@ -154,7 +156,7 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- |
 -- == Stream editor
 --
--- Also can be considered “find-and-replace”. Finds all
+-- Also known as “find-and-replace”, or “match-and-substitute”. Finds all
 -- of the sections of the stream which match the pattern @sep@, and replaces
 -- them with the result of the @editor@ function.
 --
@@ -166,13 +168,17 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 --
 -- If you want access to the matched string in the @editor@ function,
 -- then combine the pattern parser @sep@ with 'Text.Megaparsec.match'.
--- This will effectively change the type of the `editor`
--- to `(s,a) -> m s`, and then we can write `editor` like:
+-- This will effectively change the type of the @editor@
+-- to @(s,a) -> m s@.
+--
+-- This allows us to write an @editor@ function which can choose to not
+-- edit the match and just leave it as it is. We can write an
+-- @editorId@ function such that @streamEditT@ changes nothing.
 --
 -- @
---     let editor (matchString,parseResult) = return matchString
+--     let editorId (matchString, parseResult) = return matchString
 --
---     streamEditT ('Text.Megaparsec.match' sep) editor inputString
+--     id ≡ streamEditT ('Text.Megaparsec.match' sep) editorId
 -- @
 --
 -- === Type constraints
