@@ -229,14 +229,6 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 
 <http://hackage.haskell.org/package/regex-applicative>
 
-## Motivation
-
-I wanted to scan a Markdown document and find tokens inside backticks that
-look like a Haskell identifier, then look up the identifier in Hoogle to
-see if it has a definition in __base__, and if so, insert a Hackage link
-for the identifier into the Markdown. I couldn't find a simple and
-obvious way to do that with any existing technology.
-
 ## Hypothetically Asked Questions
 
 1. *Is it fast?*
