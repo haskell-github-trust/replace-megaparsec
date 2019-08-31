@@ -57,7 +57,7 @@ or
   [regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
   grammers.
   Parsers are able pattern-match with context-free grammers, and
-  even context-sensitive or Turing grammers, if needed. See below for
+  even context-sensitive grammers, if needed. See below for
   an example of lifting a `Parser` into a `State` monad for context-sensitive
   pattern-matching.
 
@@ -88,7 +88,7 @@ The following examples show how to match a pattern to a string of text
 and deconstruct the string of text by separating it into sections
 which match the pattern, and sections which don't match.
 
-#### Pattern match, capture only the parsed result
+#### Pattern match, capture only the parsed result with `sepCap`
 
 Separate the input string into sections which can be parsed as a hexadecimal
 number with a prefix `"0x"`, and sections which can't.
@@ -101,7 +101,7 @@ parseTest (sepCap hexparser) "0xA 000 0xFFFF"
 [Right 10,Left " 000 ",Right 65535]
 ```
 
-#### Pattern match, capture only the matched text
+#### Pattern match, capture only the matched text with `findAll`
 
 Just get the strings sections which match the hexadecimal parser, throw away
 the parsed number.
@@ -114,7 +114,7 @@ parseTest (findAll hexparser) "0xA 000 0xFFFF"
 [Right "0xA",Left " 000 ",Right "0xFFFF"]
 ```
 
-#### Pattern match, capture the matched text and the parsed result
+#### Pattern match, capture the matched text and the parsed result with `findAllCap`
 
 Capture the parsed hexadecimal number, as well as the string section which
 parses as a hexadecimal number.

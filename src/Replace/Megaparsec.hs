@@ -164,7 +164,7 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- a “way to run a parser”, like 'Text.Megaparsec.parse'
 -- or 'Text.Megaparsec.runParserT'.
 --
--- === Access the matched section of text in the `editor`
+-- === Access the matched section of text in the @editor@
 --
 -- If you want access to the matched string in the @editor@ function,
 -- then combine the pattern parser @sep@ with 'Text.Megaparsec.match'.
@@ -176,9 +176,13 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- @editorId@ function such that @streamEditT@ changes nothing.
 --
 -- @
---     let editorId (matchString, parseResult) = return matchString
+--     editorId (matchString, parseResult) = return matchString
+-- @
 --
---     id ≡ streamEditT ('Text.Megaparsec.match' sep) editorId
+-- implies that
+--
+-- @
+--     streamEditT ('Text.Megaparsec.match' sep) editorId ≡ 'Control.Monad.return'
 -- @
 --
 -- === Type constraints
