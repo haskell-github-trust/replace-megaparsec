@@ -246,15 +246,15 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 
    We want to replace all the `"foo"` with `"bar"`. We would expect `sed`
    to be about at the upper bound of speed for this task, so here
-   are the `perf` results when we compare `sed`
+   are the `perf` results when we compare `sed s/foo/bar/g`
    to __replace-megaparsec__ with some different stream types.
 
-   | Method           | `perf task-clock` |
-   | :---              |    ---: |
-   | `sed s/foo/bar/g` | 39 msec |
-   | `streamEdit String` | 793 msec |
-   | `streamEdit ByteString` | 513 msec |
-   | `streamEdit Text`       | 428 msec |
+   | Method                  | `perf task-clock` |
+   | :---                    |              ---: |
+   | `sed`                   | 39 msec           |
+   | `streamEdit String`     | 793 msec          |
+   | `streamEdit ByteString` | 513 msec          |
+   | `streamEdit Text`       | 428 msec          |
 
 2. *Could we write this library for __parsec__?*
 
@@ -266,4 +266,5 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 3. *Could we write this library for __attoparsec__?*
 
    I think so, but I wouldn't expect much of a speed improvement, because
-   again, `sepCap` is a fundamentally slow activity.
+   again, `sepCap` is a fundamentally slow activity, and anyway
+   [__megaparsec__ is as fast as __attoparsec__](https://github.com/mrkkrp/megaparsec#performance).
