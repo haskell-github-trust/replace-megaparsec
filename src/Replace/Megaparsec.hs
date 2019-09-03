@@ -41,10 +41,8 @@ module Replace.Megaparsec
   , findAllCap
 
     -- * Running parser
-    --
-    -- Ways to run a parser
-  , streamEditT
   , streamEdit
+  , streamEditT
   )
 where
 
@@ -169,21 +167,18 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 --
 -- If you want access to the matched string in the @editor@ function,
 -- then combine the pattern parser @sep@ with 'Text.Megaparsec.match'.
--- This will effectively change the type of the @editor@
--- to @(s,a) -> m s@.
+-- This will effectively change the type of the @editor@ function
+-- to @(s,a) -> s@.
 --
 -- This allows us to write an @editor@ function which can choose to not
--- edit the match and just leave it as it is. We can write an
--- @editorId@ function such that @streamEditT@ changes nothing.
+-- edit the match and just leave it as it is. If the @editor@ function
+-- always returns the first item in the tuple, then @streamEdit@ changes
+-- nothing.
+--
+-- So for all @sep@,
 --
 -- @
---     editorId (matchString, parseResult) = return matchString
--- @
---
--- implies that
---
--- @
---     streamEditT ('Text.Megaparsec.match' sep) editorId ≡ 'Control.Monad.return'
+--     streamEdit ('Text.Megaparsec.match' sep) 'Data.Tuple.fst' ≡ 'Data.Function.id'
 -- @
 --
 -- === Type constraints
@@ -199,17 +194,32 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- "Data.Bytestring.Lazy",
 -- and "Data.String".
 --
--- We need the @Monoid s@ instance so that we can @mconcat@ the output
+-- We need the @Monoid s@ instance so that we can 'Data.Monoid.mconcat' the output
 -- stream.
 --
 -- We need @Typeable s@ and @Show s@ for 'Control.Exception.throw'. In theory
 -- this function should never throw an exception, because it only throws
 -- when the 'sepCap' parser fails, and the 'sepCap' parser
 -- can never fail. If this function ever throws, please report that as a bug.
+{-# INLINABLE streamEdit #-}
+streamEdit
+    :: forall s a. (Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    => Parsec Void s a
+        -- ^ The parser @sep@ for the pattern of interest.
+    -> (a -> s)
+        -- ^ The @editor@ function. Takes a parsed result of @sep@
+        -- and returns a new stream section for the replacement.
+    -> s
+        -- ^ The input stream of text to be edited.
+    -> s
+streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
+
+-- |
+-- == Stream editor transformer
 --
--- === Underlying monad context
+-- Monad transformer version of 'streamEdit'.
 --
--- Both the parser @sep@ and the @editor@ function are run in the underlying
+-- Both the parser @sep@ and the @editor@ function run in the underlying
 -- monad context.
 --
 -- If you want to do 'IO' operations in the @editor@ function or the
@@ -232,21 +242,4 @@ streamEditT sep editor input = do
     runParserT (sepCap sep) "" input >>= \case
         (Left err) -> throw err -- sepCap can never fail, but if it does, throw
         (Right r) -> fmap mconcat $ traverse (either return editor) r
-
--- |
--- == Pure stream editor
---
--- Pure version of 'streamEditT'.
-{-# INLINABLE streamEdit #-}
-streamEdit
-    :: forall s a. (Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
-    => Parsec Void s a
-        -- ^ The parser @sep@ for the pattern of interest.
-    -> (a -> s)
-        -- ^ The @editor@ function. Takes a parsed result of @sep@
-        -- and returns a new stream section for the replacement.
-    -> s
-        -- ^ The input stream of text to be edited.
-    -> s
-streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 
