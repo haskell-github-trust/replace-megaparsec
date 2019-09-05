@@ -4,7 +4,7 @@ cabal-version:       1.18
 synopsis:            Stream editing with parsers
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
 bug-reports:         https://github.com/jamesdbrock/replace-megaparsec/issues
-license:             BSD3
+license:             BSD2
 license-file:        LICENSE
 author:              James Brock
 maintainer:          jamesbrock@gmail.com
