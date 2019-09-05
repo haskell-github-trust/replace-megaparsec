@@ -61,8 +61,8 @@ or
   an example of lifting a `Parser` into a `State` monad for context-sensitive
   pattern-matching.
 
-  The replacement expression for a traditional regular expression-based
-  substitution command is usually just a simple string template in which
+* The replacement expression for a traditional regular expression-based
+  substitution command is usually just a string template in which
   the *Nth* “capture group” can be inserted with the syntax `\N`. With
   this library, instead of a template, we get
   an `editor` function which can perform any computation, including IO.
