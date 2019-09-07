@@ -122,8 +122,10 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
 -- the text which matched the pattern parser @sep@ will be returned in
 -- the 'Right' sections, along with the result of the parse of @sep@.
 --
+-- Definition:
+--
 -- @
---     findAllCap sep = 'sepCap' ('Text.Megaparsec.match' sep)
+-- findAllCap sep = 'sepCap' ('Text.Megaparsec.match' sep)
 -- @
 {-# INLINABLE findAllCap #-}
 findAllCap
@@ -141,8 +143,10 @@ findAllCap sep = sepCap (match sep)
 -- return the text which matched the pattern parser @sep@ in
 -- the 'Right' sections.
 --
+-- Definition:
+--
 -- @
---     findAll sep = (fmap.fmap) ('Data.Bifunctor.second' fst) $ 'sepCap' ('Text.Megaparsec.match' sep)
+-- findAll sep = (fmap.fmap) ('Data.Bifunctor.second' fst) $ 'sepCap' ('Text.Megaparsec.match' sep)
 -- @
 {-# INLINABLE findAll #-}
 findAll
@@ -175,10 +179,10 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- always returns the first item in the tuple, then @streamEdit@ changes
 -- nothing.
 --
--- So for all @sep@,
+-- So, for all @sep@:
 --
 -- @
---     streamEdit ('Text.Megaparsec.match' sep) 'Data.Tuple.fst' ≡ 'Data.Function.id'
+-- streamEdit ('Text.Megaparsec.match' sep) 'Data.Tuple.fst' ≡ 'Data.Function.id'
 -- @
 --
 -- === Type constraints
