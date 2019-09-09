@@ -186,6 +186,16 @@ streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) "0xA 000 
 "10 000 0xFFFF"
 ```
 
+#### Pattern match and edit the matches with IO
+
+```haskell
+import System.Environment
+streamEditT (char '{' *> manyTill anySingle (char '}')) getEnv "{HOME}"
+```
+```haskell
+"/home/jbrock"
+```
+
 #### Context-sensitive pattern match and edit the matches
 
 Capitalize the third letter in a string. The `capthird` parser searches for

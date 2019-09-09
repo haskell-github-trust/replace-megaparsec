@@ -244,6 +244,8 @@ streamEditT
     -> m s
 streamEditT sep editor input = do
     runParserT (sepCap sep) "" input >>= \case
-        (Left err) -> throw err -- sepCap can never fail, but if it does, throw
+        (Left err) -> throw err
+        -- sepCap can never fail, but if it does, throw.
+        -- Don't use MonadFail because Identity is not a MonadFail.
         (Right r) -> fmap mconcat $ traverse (either return editor) r
 
