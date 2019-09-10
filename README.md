@@ -211,10 +211,10 @@ streamEdit (match hexparser) (\(s,r) -> if r <= 16 then show r else s) "0xA 000 
 
 ```haskell
 import System.Environment
-streamEditT (char '{' *> manyTill anySingle (char '}')) getEnv "{HOME}"
+streamEditT (char '{' *> manyTill anySingle (char '}')) getEnv "- {HOME} -"
 ```
 ```haskell
-"/home/jbrock"
+"- /home/jbrock -"
 ```
 
 #### Context-sensitive pattern match and edit the matches
