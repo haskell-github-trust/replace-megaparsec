@@ -1,7 +1,7 @@
 name:                replace-megaparsec
 version:             1.1.2.0
 cabal-version:       1.18
-synopsis:            Stream editing with Megaparsec
+synopsis:            Stream editing with Megaparsec parsers
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
 bug-reports:         https://github.com/jamesdbrock/replace-megaparsec/issues
 license:             BSD2
