@@ -130,7 +130,7 @@ parseTest (findAllCap hexparser) "0xA 000 0xFFFF"
 #### Pattern match, capture only the locations of the matched patterns
 
 Find all of the sections of the stream which match
-the `Text.Megaparsec.Char.space1` parser (a string of whitespace).
+a string of spaces.
 Print a list of the offsets of the beginning of every pattern match.
 
 ```haskell
@@ -140,6 +140,27 @@ parseTest (return . rights =<< sepCap spaceoffset) " a  b  "
 ```
 ```haskell
 [0,2,5]
+```
+
+#### Pattern match balanced parentheses
+
+Find the outer parentheses of all balanced nested parentheses.
+Here's an example of matching a pattern that can't be expressed by a regular
+expression. We can express the pattern with a recursive parser.
+
+```haskell
+let parens :: Parsec Void String ()
+    parens = do
+        char '('
+        manyTill
+            (void (noneOf "()") <|> void parens)
+            (char ')')
+        return ()
+
+parseTest (findAll parens) "(()) (()())"
+```
+```haskell
+[Right "(())",Left " ",Right "(()())"]
 ```
 
 ### Edit text strings by running parsers with `streamEdit`
