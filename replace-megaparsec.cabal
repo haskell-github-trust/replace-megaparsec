@@ -1,7 +1,7 @@
 name:                replace-megaparsec
-version:             1.1.2.0
+version:             1.1.3.0
 cabal-version:       1.18
-synopsis:            Stream editing with Megaparsec parsers
+synopsis:            Stream edit, find-and-replace with Megaparsec parsers
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
 bug-reports:         https://github.com/jamesdbrock/replace-megaparsec/issues
 license:             BSD2
@@ -12,8 +12,7 @@ build-type:          Simple
 category:            Parsing
 description:
 
-  Stream editing and find-and-replace with Megaparsec monadic parser
-  combinators.
+  Stream editing and find-and-replace with Megaparsec monadic parsers.
 
 extra-doc-files:     README.md
                    , CHANGELOG.md
