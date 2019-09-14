@@ -288,6 +288,8 @@ $ echo "1 6 21 107" | ./script.hs
 
 ## Alternatives
 
+<http://hackage.haskell.org/package/regex-applicative>
+
 <http://hackage.haskell.org/package/regex>
 
 <http://hackage.haskell.org/package/pipes-parse>
@@ -299,8 +301,6 @@ $ echo "1 6 21 107" | ./script.hs
 <http://hackage.haskell.org/package/pcre-utils>
 
 <http://hackage.haskell.org/package/template>
-
-<http://hackage.haskell.org/package/regex-applicative>
 
 ## Hypothetically Asked Questions
 
