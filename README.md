@@ -32,7 +32,7 @@ or
 See [__replace-attoparsec__](https://hackage.haskell.org/package/replace-attoparsec)
 for the
 [__attoparsec__](http://hackage.haskell.org/package/attoparsec)
-version.
+version. ([__megaparsec__ is as fast as __attoparsec__](https://github.com/mrkkrp/megaparsec#performance)).
 
 ## Why would we want to do pattern matching and substitution with parsers instead of regular expressions?
 
@@ -335,9 +335,3 @@ $ echo "1 6 21 107" | ./script.hs
    [`match`](https://hackage.haskell.org/package/megaparsec/docs/Text-Megaparsec.html#v:match)
    combinator doesn't exist for __parsec__. (I can't find it anywhere.
    [Can it be written?](http://www.serpentine.com/blog/2014/05/31/attoparsec/#from-strings-to-buffers-and-cursors))
-
-3. *Could we write this library for __attoparsec__?*
-
-   I think so, but I wouldn't expect much of a speed improvement, because
-   again, `sepCap` is a fundamentally slow activity, and anyway
-   [__megaparsec__ is as fast as __attoparsec__](https://github.com/mrkkrp/megaparsec#performance).
