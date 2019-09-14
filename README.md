@@ -249,6 +249,43 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 "a a A a a"
 ```
 
+## In the Shell
+
+If we're going to have a viable `sed` replacement then we want to be able
+to use it easily from the command line. This script uses the
+[Stack script interpreter](https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter)
+To find decimal numbers in a stream and replace them with their double.
+
+```haskell
+#!/usr/bin/env stack
+{- stack
+  script
+  --resolver nightly-2019-09-13
+  --package megaparsec
+  --package replace-megaparsec
+-}
+-- https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
+
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer
+import Replace.Megaparsec
+
+main = interact $ streamEdit decimal (show . (*2))
+```
+
+If you have
+[The Haskell Tool Stack](https://docs.haskellstack.org/en/stable/README/)
+installed then you can just copy-paste this into a file named `script.hs` and
+run it. (On the first run Stack may need to download the dependencies.)
+
+```bash
+$ chmod u+x script.hs
+$ echo "1 6 21 107" | ./script.hs
+2 12 42 214
+```
+
+
 ## Alternatives
 
 <http://hackage.haskell.org/package/regex>
