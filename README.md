@@ -4,6 +4,11 @@
 [![Stackage Nightly](http://stackage.org/package/replace-megaparsec/badge/nightly)](http://stackage.org/nightly/package/replace-megaparsec)
 [![Stackage LTS](http://stackage.org/package/replace-megaparsec/badge/lts)](http://stackage.org/lts/package/replace-megaparsec)
 
+* [Usage Examples](#usage-examples)
+* [In the Shell](#in-the-shell)
+* [Alternatives](#alternatives)
+* [Hypothetically Asked Questions](#hypothetically-asked-questions)
+
 __replace-megaparsec__ is for finding text patterns, and also editing and
 replacing the found patterns.
 This activity is traditionally done with regular expressions,
@@ -72,7 +77,7 @@ version. ([__megaparsec__ is as fast as __attoparsec__](https://github.com/mrkkr
   this library, instead of a template, we get
   an `editor` function which can perform any computation, including IO.
 
-# Examples
+# Usage Examples
 
 Try the examples in `ghci` by
 running `cabal v2-repl` in the `replace-megaparsec/`
@@ -290,6 +295,8 @@ $ echo "1 6 21 107" | ./script.hs
 
 
 # Alternatives
+
+Some libraries that one might consider instead of this one.
 
 <http://hackage.haskell.org/package/regex-applicative>
 
