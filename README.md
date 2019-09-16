@@ -345,3 +345,21 @@ Some libraries that one might consider instead of this one.
    [`match`](https://hackage.haskell.org/package/megaparsec/docs/Text-Megaparsec.html#v:match)
    combinator doesn't exist for __parsec__. (I can't find it anywhere.
    [Can it be written?](http://www.serpentine.com/blog/2014/05/31/attoparsec/#from-strings-to-buffers-and-cursors))
+
+3. *Is this a good idea?*
+
+   You may have heard it suggested that monadic parsers are better when
+   the input stream is mostly signal, and regular expressions are better
+   when the input stream is mostly noise.
+
+   The premise of this library is:
+   that sentiment is outdated; monadic parsers are great for finding
+   small patterns in a stream of otherwise uninteresting text; and the
+   reluctance to forego the speedup opportunities afforded by restricting
+   ourselves to regular grammars is an old superstition about
+   opportunities which
+   [remain mostly unexploited anyway](https://swtch.com/~rsc/regexp/regexp1.html).
+   The performance compromise of allowing stack memory allocation (a.k.a pushdown
+   automata, a.k.a context-free grammar) was once considered
+   [controversial for *general-purpose* programming languages](https://vanemden.wordpress.com/2014/06/18/how-recursion-got-into-programming-a-comedy-of-errors-3/). I think we
+   can now resolve that controversy the same way for pattern matching languages.
