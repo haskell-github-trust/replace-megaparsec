@@ -1,5 +1,8 @@
 -- |
 -- Module    : Replace.Megaparsec
+-- Copyright : ©2019 James Brock
+-- License   : BSD2
+-- Maintainer: James Brock <jamesbrock@gmail.com>
 --
 -- __Replace.Megaparsec__ is for finding text patterns, and also editing and
 -- replacing the found patterns.

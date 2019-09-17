@@ -1,18 +1,19 @@
 name:                replace-megaparsec
 version:             1.1.4.0
 cabal-version:       1.18
-synopsis:            Stream edit, find-and-replace with Megaparsec parsers
+synopsis:            Find, replace, and edit text patterns with Megaparsec parsers
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
 bug-reports:         https://github.com/jamesdbrock/replace-megaparsec/issues
 license:             BSD2
 license-file:        LICENSE
-author:              James Brock
-maintainer:          jamesbrock@gmail.com
+author:              James Brock <jamesbrock@gmail.com>
+maintainer:          James Brock <jamesbrock@gmail.com>
 build-type:          Simple
 category:            Parsing
 description:
 
-  Stream editing and find-and-replace with Megaparsec monadic parsers.
+  Find text patterns, and also edit or replace the found patterns. Use
+  Megaparsec monadic parsers instead of regular expressions for pattern matching.
 
 extra-doc-files:     README.md
                    , CHANGELOG.md
