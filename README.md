@@ -66,7 +66,7 @@ version. ([__megaparsec__ is as fast as __attoparsec__.](https://github.com/mrkk
 * Regular expressions are only able to pattern-match
   [regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
   grammers.
-  Parsers are able pattern-match with context-free grammers, and
+  Megaparsec parsers are able pattern-match context-free grammers, and
   even context-sensitive grammers, if needed. See below for
   an example of lifting a `Parser` into a `State` monad for context-sensitive
   pattern-matching.
@@ -95,13 +95,13 @@ import Text.Megaparsec.Char.Lexer
 ## Parsing with `sepCap` family of parser combinators
 
 The following examples show how to match a pattern to a string of text
-and deconstruct the string of text by separating it into sections
+and separate it into sections
 which match the pattern, and sections which don't match.
 
 ### Pattern match, capture only the parsed result with `sepCap`
 
 Separate the input string into sections which can be parsed as a hexadecimal
-number with a prefix `"0x"`, and sections which can't.
+number with a prefix `"0x"`, and sections which can't. Parse the numbers.
 
 ```haskell
 let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
@@ -154,8 +154,8 @@ parseTest (return . rights =<< sepCap spaceoffset) " a  b  "
 
 ### Pattern match balanced parentheses
 
-Find the outer parentheses of all balanced nested parentheses.
-Here's an example of matching a pattern that can't be expressed by a regular
+Find groups of balanced nested parentheses. This is an example of a
+“context-free” grammar, a pattern that can't be expressed by a regular
 expression. We can express the pattern with a recursive parser.
 
 ```haskell
@@ -237,7 +237,8 @@ individual letters, and it needs to remember how many times it has run so
 that it can match successfully only on the third time that it finds a letter.
 To enable the parser to remember how many times it has run, we'll
 compose the parser with a `State` monad from
-the `mtl` package. (Run in `ghci` with `cabal v2-repl -b mtl`).
+the `mtl` package. (Run in `ghci` with `cabal v2-repl -b mtl`). Because it has
+stateful memory, this parser is an example of a “context-sensitive” grammar.
 
 ```haskell
 import qualified Control.Monad.State.Strict as MTL
@@ -260,9 +261,9 @@ flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
 # In the Shell
 
 If we're going to have a viable `sed` replacement then we want to be able
-to use it easily from the command line. This script uses the
+to use it easily from the command line. This
 [Stack script interpreter](https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter)
-To find decimal numbers in a stream and replace them with their double.
+script will find decimal numbers in a stream and replace them with their double.
 
 ```haskell
 #!/usr/bin/env stack
@@ -284,12 +285,12 @@ main = interact $ streamEdit decimal (show . (*2))
 
 If you have
 [The Haskell Tool Stack](https://docs.haskellstack.org/en/stable/README/)
-installed then you can just copy-paste this into a file named `script.hs` and
+installed then you can just copy-paste this into a file named `doubler.hs` and
 run it. (On the first run Stack may need to download the dependencies.)
 
 ```bash
-$ chmod u+x script.hs
-$ echo "1 6 21 107" | ./script.hs
+$ chmod u+x doubler.hs
+$ echo "1 6 21 107" | ./doubler.hs
 2 12 42 214
 ```
 
@@ -299,6 +300,10 @@ $ echo "1 6 21 107" | ./script.hs
 Some libraries that one might consider instead of this one.
 
 <http://hackage.haskell.org/package/regex-applicative>
+
+<http://hackage.haskell.org/package/pcre-heavy>
+
+<http://hackage.haskell.org/package/lens-regex-pcre>
 
 <http://hackage.haskell.org/package/regex>
 
@@ -312,7 +317,6 @@ Some libraries that one might consider instead of this one.
 
 <http://hackage.haskell.org/package/template>
 
-<https://github.com/ChrisPenner/lens-regex-pcre>
 
 # Hypothetically Asked Questions
 
