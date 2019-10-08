@@ -15,3 +15,6 @@
 * In `streamEditT`, replace `fold` with `mconcat`. The benchmarks now show
   linear scaling instead of quadratic.
 
+## 1.1.5.0 -- 2019-10-08
+
+* Move benchmarks to [__replace-benchmark__](https://github.com/jamesdbrock/replace-benchmark)

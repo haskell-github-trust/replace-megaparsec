@@ -1,5 +1,5 @@
 name:                replace-megaparsec
-version:             1.1.4.0
+version:             1.1.5.0
 cabal-version:       1.18
 synopsis:            Find, replace, and edit text patterns with Megaparsec parsers
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
@@ -64,50 +64,4 @@ test-suite test-bytestring
                      , Cabal
                      , bytestring
   ghc-options:         -Wall
-
-
--- Disable these executables for now, they clutter up
--- the dependency list and `cabal v2-build`.
---
--- executable bench-string
---   main-is:             BenchString.hs
---   hs-source-dirs:      bench
---   default-language:    Haskell2010
---   build-depends:       base >= 4.0 && < 5.0
---                      , megaparsec
---                      , replace-megaparsec
---   ghc-options:         -O2 -Wall
---
--- executable bench-text
---   main-is:             BenchText.hs
---   hs-source-dirs:      bench
---   default-language:    Haskell2010
---   build-depends:       base >= 4.0 && < 5.0
---                      , megaparsec
---                      , replace-megaparsec
---                      , text
---   ghc-options:         -O2 -Wall
---
--- executable bench-bytestring
---   main-is:             BenchByteString.hs
---   hs-source-dirs:      bench
---   default-language:    Haskell2010
---   build-depends:       base >= 4.0 && < 5.0
---                      , megaparsec
---                      , replace-megaparsec
---                      , bytestring
---   ghc-options:         -O2 -Wall
-
-benchmark bench-unit
-  main-is:             BenchUnit.hs
-  hs-source-dirs:      bench
-  type:                exitcode-stdio-1.0
-  default-language:    Haskell2010
-  build-depends:       base >= 4.0 && < 5.0
-                     , megaparsec
-                     , replace-megaparsec
-                     , text
-                     , bytestring
-                     , criterion
-  ghc-options:         -O2 -Wall
 
