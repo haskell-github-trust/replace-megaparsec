@@ -317,42 +317,69 @@ Some libraries that one might consider instead of this one.
 
 <http://hackage.haskell.org/package/template>
 
+# Benchmarks
+
+The benchmark task is to find all of the one-character patterns `x` in a
+text stream and replace them by a function which returns the constant
+string `oo`. So, like the regex `s/x/oo/g`.
+
+We have two benchmark input cases, which we call __dense__ and __sparse__.
+
+The __dense__ case is one megabyte of alternating spaces and `x`s
+like
+
+```
+x x x x x x x x x x x x x x x x x x x x x x x x x x x x
+```
+
+The __sparse__ case is one megabyte of spaces with a single `x` in the middle
+like
+
+```
+                         x
+```
+
+Each benchmark program reads the input from `stdin`, replaces `x` with `oo`,
+and writes the result to `stdout`. The time elapsed is measured by `perf stat`.
+
+See [replace-benchmark](https://github.com/jamesdbrock/replace-benchmark)
+for details.
+
+| Program                                           | dense     | sparse   |
+| :---                                              |      ---: |     ---: |
+| Python `re.sub`¹                                  | 89.23ms   | 23.98ms  |
+| Perl `s///ge`²                                    | 180.65ms  | 5.60ms   |
+| [`Replace.Megaparsec.streamEdit`][m] `String`     | 454.95ms  | 375.04ms |
+| [`Replace.Megaparsec.streamEdit`][m] `ByteString` | 611.98ms  | 433.26ms |
+| [`Replace.Megaparsec.streamEdit`][m] `Text`       | 592.66ms  | 353.32ms |
+| [`Replace.Attoparsec.ByteString.streamEdit`][ab]  | 537.57ms  | 407.33ms |
+| [`Replace.Attoparsec.Text.streamEdit`][at]        | 549.62ms  | 280.96ms |
+| [`Text.Regex.Applicative.replace`][ra] `String`   | 1083.98ms | 646.40ms |
+| [`Text.Regex.PCRE.Heavy.gsub`][ph] `Text`         | ⊥³        | 14.76ms  |
+
+¹ Python 3.7.4
+
+² This is perl 5, version 28, subversion 2 (v5.28.2) built for x86_64-linux-thread-multi
+
+³ Does not finish.
+
+[m]: https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEdit
+[ab]: https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-ByteString.html#v:streamEdit
+[at]: https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-Text.html#v:streamEdit
+[ra]: http://hackage.haskell.org/package/regex-applicative/docs/Text-Regex-Applicative.html#v:replace
+[ph]: http://hackage.haskell.org/package/pcre-heavy/docs/Text-Regex-PCRE-Heavy.html
+
 
 # Hypothetically Asked Questions
 
-1. *Is it fast?*
-
-   lol not really. `sepCap` is fundamentally about consuming the stream one
-   token at a time while we try and fail to run a parser and then
-   backtrack each time. That's
-   [a slow activity](https://markkarpov.com/megaparsec/megaparsec.html#writing-efficient-parsers).
-
-   Consider a 1 megabyte file that consists of `"foo"` every ten bytes:
-
-   ```
-          foo       foo       foo       foo       foo       foo ...
-   ```
-
-   We want to replace all the `"foo"` with `"bar"`. We would expect `sed`
-   to be about at the upper bound of speed for this task, so here
-   are the `perf` results when we compare `sed s/foo/bar/g`
-   to __replace-megaparsec__ with some different stream types.
-
-   | Method                  | `perf task-clock` |
-   | :---                    |              ---: |
-   | `sed`                   | 39 msec           |
-   | `streamEdit String`     | 793 msec          |
-   | `streamEdit ByteString` | 513 msec          |
-   | `streamEdit Text`       | 428 msec          |
-
-2. *Could we write this library for __parsec__?*
+1. *Could we write this library for __parsec__?*
 
    No, because the
    [`match`](https://hackage.haskell.org/package/megaparsec/docs/Text-Megaparsec.html#v:match)
    combinator doesn't exist for __parsec__. (I can't find it anywhere.
    [Can it be written?](http://www.serpentine.com/blog/2014/05/31/attoparsec/#from-strings-to-buffers-and-cursors))
 
-3. *Is this a good idea?*
+2. *Is this a good idea?*
 
    You may have heard it suggested that monadic parsers are better when
    the input stream is mostly signal, and regular expressions are better
