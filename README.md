@@ -7,6 +7,7 @@
 * [Usage Examples](#usage-examples)
 * [In the Shell](#in-the-shell)
 * [Alternatives](#alternatives)
+* [Benchmarks](#benchmarks)
 * [Hypothetically Asked Questions](#hypothetically-asked-questions)
 
 __replace-megaparsec__ is for finding text patterns, and also editing and
