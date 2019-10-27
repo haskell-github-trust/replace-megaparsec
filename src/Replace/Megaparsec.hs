@@ -35,6 +35,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Replace.Megaparsec
   (
@@ -57,6 +58,8 @@ import Data.Proxy
 import Control.Exception (throw)
 import Data.Typeable
 import Control.Monad
+import qualified Data.ByteString as B
+import qualified Data.Text as T
 import Text.Megaparsec
 
 -- |
@@ -92,6 +95,7 @@ import Text.Megaparsec
 -- of throwing it away.
 --
 {-# INLINABLE sepCap #-}
+-- {-# NOINLINE sepCap #-}
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
@@ -115,6 +119,99 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
         offset2 <- getOffset
         when (offset1 >= offset2) empty
         return x
+
+-- https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#specialisation
+#if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
+{-# RULES "sepCap/ByteString"
+ forall e. forall.
+ sepCap @e @B.ByteString = sepCapByteString @e @B.ByteString
+ #-}
+#elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
+{-# RULES "sepCap/ByteString"
+ forall (pa :: ParsecT e B.ByteString m a).
+ sepCap @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
+ sepCapByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa
+ #-}
+#endif
+sepCapByteString
+    :: forall e s m a. (MonadParsec e s m, s ~ B.ByteString)
+    -- :: forall e m a. (MonadParsec e B.ByteString m)
+    -- :: forall e s m a. (Stream s, Tokens s ~ B.ByteString, MonadParsec e s m)
+    -- :: forall e s m a. (Stream s, s ~ B.ByteString, MonadParsec e s m)
+    => m a -- ^ The pattern matching parser @sep@
+    -> m [Either (Tokens s) a]
+    -- -> m [Either B.ByteString a]
+
+-- sepCapByteString sep = sep >>= \x -> return [Right x]
+
+--sepCapByteString
+--    :: ParsecT e B.ByteString m a -- ^ The pattern matching parser @sep@
+--    -> ParsecT e B.ByteString m [Either B.ByteString a]
+
+
+sepCapByteString sep = getInput >>= go
+  where
+    -- the go function will search for the first pattern match,
+    -- and then capture the pattern match along with the preceding
+    -- unmatched string, and then recurse.
+    -- restBegin is the rest of the buffer after the last pattern
+    -- match.
+    go restBegin = do
+        -- !offsetThis <- getOffset
+        (<|>)
+            ( do
+                -- http://hackage.haskell.org/package/attoparsec-0.13.2.3/docs/src/Data.Attoparsec.Internal.html#endOfInput
+               -- _ <- endOfInput
+                atend <- atEnd
+                if atend
+                    then
+                        if B.length restBegin > 0 then
+                            -- If we're at the end of the input, then return
+                            -- whatever unmatched string we've got since offsetBegin
+                            -- substring offsetBegin offsetThis >>= \s -> pure [Left s]
+                            pure [Left restBegin]
+                        else pure []
+                    else empty -- pure []
+            )
+            ( do
+                restThis <- getInput
+                -- About 'thisiter':
+                -- It looks stupid and introduces a completely unnecessary
+                -- Maybe, but when I refactor to eliminate 'thisiter' and
+                -- the Maybe then the benchmarks get dramatically worse.
+                thisiter <- (<|>)
+                    ( do
+                        x <- sep
+                        -- !offsetAfter <- getOffset
+                        restAfter <- getInput
+                        -- Don't allow a match of a zero-width pattern
+                        when (B.length restAfter >= B.length restThis) empty
+                        return $ Just (x, restAfter)
+                    )
+                    (anySingle >> return Nothing)
+                case thisiter of
+                    (Just (x, restAfter)) | B.length restThis < B.length restBegin -> do
+                        -- we've got a match with some preceding unmatched string
+                        let unmatched = B.take (B.length restBegin - B.length restThis) restBegin
+                        -- unmatched <- substring offsetBegin offsetThis
+                        (Left unmatched:) <$> (Right x:) <$> go restAfter
+                    (Just (x, restAfter)) -> do
+                        -- we're got a match with no preceding unmatched string
+                        (Right x:) <$> go restAfter
+                    Nothing -> go restBegin -- no match, try again
+            )
+{-# INLINEABLE sepCapByteString #-}
+
+
+
+
+
+
+
+
+
+
+
 
 -- |
 -- == Find all occurences, parse and capture pattern matches
