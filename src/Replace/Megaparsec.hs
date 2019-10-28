@@ -95,7 +95,6 @@ import Text.Megaparsec
 -- of throwing it away.
 --
 {-# INLINABLE sepCap #-}
--- {-# NOINLINE sepCap #-}
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
@@ -124,31 +123,20 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
 #if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
 {-# RULES "sepCap/ByteString"
  forall e. forall.
- sepCap @e @B.ByteString = sepCapByteString @e @B.ByteString
- #-}
+ sepCap           @e @B.ByteString =
+ sepCapByteString @e @B.ByteString #-}
 #elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
 {-# RULES "sepCap/ByteString"
  forall (pa :: ParsecT e B.ByteString m a).
- sepCap @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
- sepCapByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa
- #-}
+ sepCap           @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
+ sepCapByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa #-}
 #endif
+-- {-# INLINEABLE sepCapByteString #-}
+{-# INLINE [1] sepCapByteString #-}
 sepCapByteString
     :: forall e s m a. (MonadParsec e s m, s ~ B.ByteString)
-    -- :: forall e m a. (MonadParsec e B.ByteString m)
-    -- :: forall e s m a. (Stream s, Tokens s ~ B.ByteString, MonadParsec e s m)
-    -- :: forall e s m a. (Stream s, s ~ B.ByteString, MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
     -> m [Either (Tokens s) a]
-    -- -> m [Either B.ByteString a]
-
--- sepCapByteString sep = sep >>= \x -> return [Right x]
-
---sepCapByteString
---    :: ParsecT e B.ByteString m a -- ^ The pattern matching parser @sep@
---    -> ParsecT e B.ByteString m [Either B.ByteString a]
-
-
 sepCapByteString sep = getInput >>= go
   where
     -- the go function will search for the first pattern match,
@@ -160,47 +148,39 @@ sepCapByteString sep = getInput >>= go
         -- !offsetThis <- getOffset
         (<|>)
             ( do
-                -- http://hackage.haskell.org/package/attoparsec-0.13.2.3/docs/src/Data.Attoparsec.Internal.html#endOfInput
-               -- _ <- endOfInput
-                atend <- atEnd
-                if atend
-                    then
+                restThis <- getInput
+                -- About 'thisiter':
+                -- It looks stupid and introduces a completely unnecessary
+                -- Maybe, but when I refactor to eliminate 'thisiter' and
+                -- the Maybe then the benchmarks get dramatically worse.
+                (<|>)
+                    ( do
+                        x <- sep
+                        restAfter <- getInput
+                        let restThisLen  = B.length restThis
+                        let restAfterLen = B.length restAfter
+                        let restBeginLen = B.length restBegin
+                        case () of
+                            -- Don't allow a match of a zero-width pattern
+                         _| restAfterLen >= restThisLen -> empty
+                         _| restThisLen < restBeginLen -> do
+                            -- we've got a match with some preceding unmatched string
+                            let unmatched = B.take (restBeginLen - restThisLen) restBegin
+                            (Left unmatched:) <$> (Right x:) <$> go restAfter
+                         _ ->
+                            -- we're got a match with no preceding unmatched string
+                            (Right x:) <$> go restAfter
+                    )
+                    (anySingle >> go restBegin)
+            )
+            ( do
                         if B.length restBegin > 0 then
                             -- If we're at the end of the input, then return
                             -- whatever unmatched string we've got since offsetBegin
                             -- substring offsetBegin offsetThis >>= \s -> pure [Left s]
                             pure [Left restBegin]
                         else pure []
-                    else empty -- pure []
             )
-            ( do
-                restThis <- getInput
-                -- About 'thisiter':
-                -- It looks stupid and introduces a completely unnecessary
-                -- Maybe, but when I refactor to eliminate 'thisiter' and
-                -- the Maybe then the benchmarks get dramatically worse.
-                thisiter <- (<|>)
-                    ( do
-                        x <- sep
-                        -- !offsetAfter <- getOffset
-                        restAfter <- getInput
-                        -- Don't allow a match of a zero-width pattern
-                        when (B.length restAfter >= B.length restThis) empty
-                        return $ Just (x, restAfter)
-                    )
-                    (anySingle >> return Nothing)
-                case thisiter of
-                    (Just (x, restAfter)) | B.length restThis < B.length restBegin -> do
-                        -- we've got a match with some preceding unmatched string
-                        let unmatched = B.take (B.length restBegin - B.length restThis) restBegin
-                        -- unmatched <- substring offsetBegin offsetThis
-                        (Left unmatched:) <$> (Right x:) <$> go restAfter
-                    (Just (x, restAfter)) -> do
-                        -- we're got a match with no preceding unmatched string
-                        (Right x:) <$> go restAfter
-                    Nothing -> go restBegin -- no match, try again
-            )
-{-# INLINEABLE sepCapByteString #-}
 
 
 
