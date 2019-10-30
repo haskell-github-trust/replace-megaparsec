@@ -61,6 +61,7 @@ import Control.Monad
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import Text.Megaparsec
+import Replace.Megaparsec.Internal.ByteString
 
 -- |
 -- == Separate and capture
@@ -94,8 +95,6 @@ import Text.Megaparsec
 -- but, importantly, it returns the parsed result of the @sep@ parser instead
 -- of throwing it away.
 --
-{-# INLINABLE sepCap #-}
--- {-# NOINLINE sepCap #-}
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
@@ -119,7 +118,7 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
         offset2 <- getOffset
         when (offset1 >= offset2) empty
         return x
-
+{-# INLINABLE sepCap #-}
 -- https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#specialisation
 #if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
 {-# RULES "sepCap/ByteString"
@@ -132,63 +131,6 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
  sepCap           @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
  sepCapByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa #-}
 #endif
--- {-# INLINEABLE sepCapByteString #-}
-{-# INLINE [1] sepCapByteString #-}
-sepCapByteString
-    :: forall e s m a. (MonadParsec e s m, s ~ B.ByteString)
-    => m a -- ^ The pattern matching parser @sep@
-    -> m [Either (Tokens s) a]
-
-sepCapByteString sep = getInput >>= go
-  where
-    -- the go function will search for the first pattern match,
-    -- and then capture the pattern match along with the preceding
-    -- unmatched string, and then recurse.
-    -- restBegin is the rest of the buffer after the last pattern
-    -- match.
-    go restBegin = do
-        -- !offsetThis <- getOffset
-        (<|>)
-            ( do
-                restThis <- getInput
-                -- About 'thisiter':
-                -- It looks stupid and introduces a completely unnecessary
-                -- Maybe, but when I refactor to eliminate 'thisiter' and
-                -- the Maybe then the benchmarks get dramatically worse.
-                thisiter <- (<|>)
-                    ( do
-                        x <- sep
-                        -- !offsetAfter <- getOffset
-                        restAfter <- getInput
-                        -- Don't allow a match of a zero-width pattern
-                        when (B.length restAfter >= B.length restThis) empty
-                        return $ Just (x, restAfter)
-                    )
-                    (anySingle >> return Nothing)
-                case thisiter of
-                    (Just (x, restAfter)) | B.length restThis < B.length restBegin -> do
-                        -- we've got a match with some preceding unmatched string
-                        let unmatched = B.take (B.length restBegin - B.length restThis) restBegin
-                        -- unmatched <- substring offsetBegin offsetThis
-                        (Left unmatched:) <$> (Right x:) <$> go restAfter
-                    (Just (x, restAfter)) -> do
-                        -- we're got a match with no preceding unmatched string
-                        (Right x:) <$> go restAfter
-                    Nothing -> go restBegin -- no match, try again
-            )
-            ( do
-                if B.length restBegin > 0 then
-                    -- If we're at the end of the input, then return
-                    -- whatever unmatched string we've got since offsetBegin
-                    -- substring offsetBegin offsetThis >>= \s -> pure [Left s]
-                    pure [Left restBegin]
-                else pure []
-            )
-
-
-
-
-
 
 -- |
 -- == Find all occurences, parse and capture pattern matches
