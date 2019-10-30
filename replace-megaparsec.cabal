@@ -31,6 +31,7 @@ library
   default-language:    Haskell2010
   exposed-modules:     Replace.Megaparsec
                      , Replace.Megaparsec.Internal.ByteString
+                     , Replace.Megaparsec.Internal.Text
   ghc-options:         -O2 -Wall -cpp
 
 test-suite test-string

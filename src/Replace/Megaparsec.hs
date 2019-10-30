@@ -59,9 +59,9 @@ import Control.Exception (throw)
 import Data.Typeable
 import Control.Monad
 import qualified Data.ByteString as B
-import qualified Data.Text as T
 import Text.Megaparsec
 import Replace.Megaparsec.Internal.ByteString
+import Replace.Megaparsec.Internal.Text
 
 -- |
 -- == Separate and capture
