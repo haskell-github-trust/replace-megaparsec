@@ -59,6 +59,7 @@ import Control.Exception (throw)
 import Data.Typeable
 import Control.Monad
 import qualified Data.ByteString as B
+import qualified Data.Text as T
 import Text.Megaparsec
 import Replace.Megaparsec.Internal.ByteString
 import Replace.Megaparsec.Internal.Text
@@ -125,11 +126,19 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
  forall e. forall.
  sepCap           @e @B.ByteString =
  sepCapByteString @e @B.ByteString #-}
+{-# RULES "sepCap/Text"
+ forall e. forall.
+ sepCap     @e @T.Text =
+ sepCapText @e @T.Text #-}
 #elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
 {-# RULES "sepCap/ByteString"
  forall (pa :: ParsecT e B.ByteString m a).
  sepCap           @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
  sepCapByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa #-}
+{-# RULES "sepCap/Text"
+ forall (pa :: ParsecT e T.Text m a).
+ sepCap     @e @T.Text @(ParsecT e T.Text m) @a pa =
+ sepCapText @e @T.Text @(ParsecT e T.Text m) @a pa #-}
 #endif
 
 -- |
