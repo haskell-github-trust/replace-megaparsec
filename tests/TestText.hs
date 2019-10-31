@@ -1,9 +1,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module TestText ( tests ) where
 
 import Distribution.TestSuite
+import Distribution.TestSuite as TestSuite
 import Replace.Megaparsec
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -40,6 +42,19 @@ tests = return
         (sepCap (return (read "a" :: Int) :: Parser Int))
         ("a")
         ([Left "a"])
+    , Test $ runParserTest "findAll astral"
+        (findAll ((takeWhileP Nothing (=='𝅘𝅥𝅯') :: Parser T.Text)))
+        ("𝄞𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥" :: T.Text)
+        [Left "𝄞𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥", Right "𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯", Left "𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥"]
+    , Test $ streamEditTest "x to o"
+        (string "x" :: Parser T.Text) (const "o")
+        "x x x" "o o o"
+    , Test $ streamEditTest "x to o inner"
+        (string "x" :: Parser T.Text) (const "o")
+        " x x x " " o o o "
+    , Test $ streamEditTest "ordering"
+        (string "456" :: Parser T.Text) (const "ABC")
+        "123456789" "123ABC789"
     ]
   where
     runParserTest nam p input expected = TestInstance
@@ -52,6 +67,19 @@ tests = return
                             else return (Finished $ Fail
                                         $ show output ++ " ≠ " ++ show expected)
             , name = nam
+            , tags = []
+            , options = []
+            , setOption = \_ _ -> Left "no options supported"
+            }
+
+    streamEditTest nam sep editor input expected = TestInstance
+            { run = do
+                let output = streamEdit sep editor input
+                if (output == expected)
+                    then return (Finished Pass)
+                    else return (Finished $ TestSuite.Fail
+                                $ show output ++ " ≠ " ++ show expected)
+            , name = "streamEdit " ++ nam
             , tags = []
             , options = []
             , setOption = \_ _ -> Left "no options supported"
