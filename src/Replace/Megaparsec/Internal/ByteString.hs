@@ -37,7 +37,6 @@ sepCapByteString sep = getInput >>= go
     -- restBegin is the rest of the buffer after the last pattern
     -- match.
     go restBegin = do
-        -- !offsetThis <- getOffset
         (<|>)
             ( do
                 restThis <- getInput
@@ -48,18 +47,16 @@ sepCapByteString sep = getInput >>= go
                 thisiter <- (<|>)
                     ( do
                         x <- sep
-                        -- !offsetAfter <- getOffset
                         restAfter <- getInput
                         -- Don't allow a match of a zero-width pattern
                         when (B.length restAfter >= B.length restThis) empty
-                        return $ Just (x, restAfter)
+                        pure $ Just (x, restAfter)
                     )
-                    (anySingle >> return Nothing)
+                    (anySingle >> pure Nothing)
                 case thisiter of
                     (Just (x, restAfter)) | B.length restThis < B.length restBegin -> do
                         -- we've got a match with some preceding unmatched string
                         let unmatched = B.take (B.length restBegin - B.length restThis) restBegin
-                        -- unmatched <- substring offsetBegin offsetThis
                         (Left unmatched:) <$> (Right x:) <$> go restAfter
                     (Just (x, restAfter)) -> do
                         -- we're got a match with no preceding unmatched string
@@ -67,10 +64,9 @@ sepCapByteString sep = getInput >>= go
                     Nothing -> go restBegin -- no match, try again
             )
             ( do
+                -- We're at the end of the input, so return
+                -- whatever unmatched string we've got since offsetBegin
                 if B.length restBegin > 0 then
-                    -- If we're at the end of the input, then return
-                    -- whatever unmatched string we've got since offsetBegin
-                    -- substring offsetBegin offsetThis >>= \s -> pure [Left s]
                     pure [Left restBegin]
                 else pure []
             )

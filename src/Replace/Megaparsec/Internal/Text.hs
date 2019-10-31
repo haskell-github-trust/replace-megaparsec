@@ -4,7 +4,7 @@
 -- License   : BSD2
 -- Maintainer: James Brock <jamesbrock@gmail.com>
 --
--- This internal module is for 'Data.ByteString.ByteString' specializations.
+-- This internal module is for 'Data.Text.Text' specializations.
 --
 -- The functions in this module are supposed to be chosen automatically
 -- by rewrite rules in the "Replace.Megaparsec" module, so you should never
@@ -38,10 +38,9 @@ sepCapText sep = getInput >>= go
     -- restBegin is the rest of the buffer after the last pattern
     -- match.
     go restBegin@(Text tarray beginIndx beginLen) = do
-        -- !offsetThis <- getOffset
         (<|>)
             ( do
-                (Text _ thisIndx thisLen) <- getInput
+                (Text _ _ thisLen) <- getInput
                 -- About 'thisiter':
                 -- It looks stupid and introduces a completely unnecessary
                 -- Maybe, but when I refactor to eliminate 'thisiter' and
@@ -49,19 +48,16 @@ sepCapText sep = getInput >>= go
                 thisiter <- (<|>)
                     ( do
                         x <- sep
-                        -- !offsetAfter <- getOffset
-                        restAfter@(Text _ afterIndx afterLen) <- getInput
+                        restAfter@(Text _ _ afterLen) <- getInput
                         -- Don't allow a match of a zero-width pattern
                         when (afterLen >= thisLen) empty
-                        return $ Just (x, restAfter)
+                        pure $ Just (x, restAfter)
                     )
-                    (anySingle >> return Nothing)
+                    (anySingle >> pure Nothing)
                 case thisiter of
-                    (Just (x, restAfter@(Text _ afterIndx afterLen))) | thisLen < beginLen -> do
+                    (Just (x, restAfter)) | thisLen < beginLen -> do
                         -- we've got a match with some preceding unmatched string
-                        -- let unmatched = T.take (T.length restBegin - T.length restThis) restBegin
                         let unmatched = Text tarray beginIndx (beginLen - thisLen)
-                        -- unmatched <- substring offsetBegin offsetThis
                         (Left unmatched:) <$> (Right x:) <$> go restAfter
                     (Just (x, restAfter)) -> do
                         -- we're got a match with no preceding unmatched string
@@ -69,10 +65,9 @@ sepCapText sep = getInput >>= go
                     Nothing -> go restBegin -- no match, try again
             )
             ( do
-                if beginLen > 0 then
-                    -- If we're at the end of the input, then return
+                    -- We're at the end of the input, so return
                     -- whatever unmatched string we've got since offsetBegin
-                    -- substring offsetBegin offsetThis >>= \s -> pure [Left s]
+                if beginLen > 0 then
                     pure [Left restBegin]
                 else pure []
             )

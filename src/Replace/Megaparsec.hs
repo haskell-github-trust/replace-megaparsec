@@ -119,27 +119,30 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
         offset2 <- getOffset
         when (offset1 >= offset2) empty
         return x
-{-# INLINABLE sepCap #-}
+{-# INLINE [1] sepCap #-}
 -- https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#specialisation
+-- What we're missing here is a rule that can pick up non-ParsecT instances
+-- of MonadParsec for GHC < 8.8.
 #if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
-{-# RULES "sepCap/ByteString"
+{-# RULES "sepCap/ByteString" [2]
  forall e. forall.
  sepCap           @e @B.ByteString =
  sepCapByteString @e @B.ByteString #-}
-{-# RULES "sepCap/Text"
+{-# RULES "sepCap/Text" [2]
  forall e. forall.
  sepCap     @e @T.Text =
  sepCapText @e @T.Text #-}
 #elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
-{-# RULES "sepCap/ByteString"
+{-# RULES "sepCap/ByteString" [2]
  forall (pa :: ParsecT e B.ByteString m a).
  sepCap           @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
  sepCapByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa #-}
-{-# RULES "sepCap/Text"
+{-# RULES "sepCap/Text" [2]
  forall (pa :: ParsecT e T.Text m a).
  sepCap     @e @T.Text @(ParsecT e T.Text m) @a pa =
  sepCapText @e @T.Text @(ParsecT e T.Text m) @a pa #-}
 #endif
+
 
 -- |
 -- == Find all occurences, parse and capture pattern matches
@@ -155,12 +158,13 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
 -- @
 -- findAllCap sep = 'sepCap' ('Text.Megaparsec.match' sep)
 -- @
-{-# INLINABLE findAllCap #-}
 findAllCap
     :: MonadParsec e s m
     => m a -- ^ The pattern matching parser @sep@
     -> m [Either (Tokens s) (Tokens s, a)]
 findAllCap sep = sepCap (match sep)
+{-# INLINABLE findAllCap #-}
+
 
 -- |
 -- == Find all occurences
@@ -176,12 +180,12 @@ findAllCap sep = sepCap (match sep)
 -- @
 -- findAll sep = (fmap.fmap) ('Data.Bifunctor.second' fst) $ 'sepCap' ('Text.Megaparsec.match' sep)
 -- @
-{-# INLINABLE findAll #-}
 findAll
     :: MonadParsec e s m
     => m a -- ^ The pattern matching parser @sep@
     -> m [Either (Tokens s) (Tokens s)]
 findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
+{-# INLINABLE findAll #-}
 
 
 -- |
@@ -233,7 +237,6 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- this function should never throw an exception, because it only throws
 -- when the 'sepCap' parser fails, and the 'sepCap' parser
 -- can never fail. If this function ever throws, please report that as a bug.
-{-# INLINABLE streamEdit #-}
 streamEdit
     :: forall s a. (Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
     => Parsec Void s a
@@ -245,6 +248,7 @@ streamEdit
         -- ^ The input stream of text to be edited.
     -> s
 streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
+{-# INLINABLE streamEdit #-}
 
 -- |
 -- == Stream editor transformer
@@ -259,7 +263,6 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 --
 -- If you want the @editor@ function or the parser @sep@ to remember some state,
 -- then run this in a stateful monad.
-{-# INLINABLE streamEditT #-}
 streamEditT
     :: forall s m a. (Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
     => ParsecT Void s m a
@@ -276,4 +279,5 @@ streamEditT sep editor input = do
         -- sepCap can never fail, but if it does, throw.
         -- Don't use MonadFail because Identity is not a MonadFail.
         (Right r) -> fmap mconcat $ traverse (either return editor) r
+{-# INLINABLE streamEditT #-}
 
