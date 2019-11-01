@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE CPP #-}
 
 module TestText ( tests ) where
 
@@ -38,10 +39,12 @@ tests = return
         (sepCap (fail "" :: Parser ()))
         ("xxx")
         ([Left "xxx"])
+#if MIN_VERSION_GLASGOW_HASKELL(8,6,0,0)
     , Test $ runParserTest "read fail"
         (sepCap (return (read "a" :: Int) :: Parser Int))
         ("a")
         ([Left "a"])
+#endif
     , Test $ runParserTest "findAll astral"
         (findAll ((takeWhileP Nothing (=='𝅘𝅥𝅯') :: Parser T.Text)))
         ("𝄞𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥" :: T.Text)

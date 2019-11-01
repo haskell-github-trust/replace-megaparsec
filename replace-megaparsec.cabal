@@ -32,7 +32,7 @@ library
   exposed-modules:     Replace.Megaparsec
                      , Replace.Megaparsec.Internal.ByteString
                      , Replace.Megaparsec.Internal.Text
-  ghc-options:         -O2 -Wall -cpp
+  ghc-options:         -O2 -Wall
 
 test-suite test-string
   type:                detailed-0.9
