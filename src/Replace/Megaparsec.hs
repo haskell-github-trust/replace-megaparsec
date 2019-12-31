@@ -52,7 +52,6 @@ module Replace.Megaparsec
 where
 
 
-import Data.Void
 import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Proxy
@@ -209,8 +208,8 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 --
 -- This allows us to write an @editor@ function which can choose to not
 -- edit the match and just leave it as it is. If the @editor@ function
--- always returns the first item in the tuple, then @streamEdit@ changes
--- nothing.
+-- returns the first item in the tuple, then @streamEdit@ will not change
+-- the matched string.
 --
 -- So, for all @sep@:
 --
@@ -237,10 +236,10 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- We need @Typeable s@ and @Show s@ for 'Control.Exception.throw'. In theory
 -- this function should never throw an exception, because it only throws
 -- when the 'sepCap' parser fails, and the 'sepCap' parser
--- can never fail. If this function ever throws, please report that as a bug.
+-- can never fail. The error type parameter @e@ should usually be 'Data.Void'.
 streamEdit
-    :: forall s a. (Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
-    => Parsec Void s a
+    :: forall e s a. (Show e, ShowErrorComponent e, Typeable e, Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    => Parsec e s a
         -- ^ The parser @sep@ for the pattern of interest.
     -> (a -> s)
         -- ^ The @editor@ function. Takes a parsed result of @sep@
@@ -265,8 +264,8 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 -- If you want the @editor@ function or the parser @sep@ to remember some state,
 -- then run this in a stateful monad.
 streamEditT
-    :: forall s m a. (Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
-    => ParsecT Void s m a
+    :: forall e s m a. (Show e, ShowErrorComponent e, Typeable e, Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    => ParsecT e s m a
         -- ^ The parser @sep@ for the pattern of interest.
     -> (a -> m s)
         -- ^ The @editor@ function. Takes a parsed result of @sep@
