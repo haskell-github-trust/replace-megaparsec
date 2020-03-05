@@ -1,5 +1,16 @@
 # Revision history for replace-megaparsec
 
+## 1.3.0.0 -- 2020-03-06
+
+`sepCap` won't throw.
+
+Don't throw an exception on an unreachable error case, just bottom.
+Remove type constraints for `Exception`.
+
+## 1.2.1.0 -- 2020-01-01
+
+Allow any error parameter, not just `Void`.
+
 ## 1.2.0.0 -- 2019-10-31
 
 Benchmark improvements

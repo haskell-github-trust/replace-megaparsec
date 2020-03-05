@@ -72,18 +72,18 @@ import Replace.Megaparsec.Internal.Text
 --
 -- === Output
 --
--- The input stream is separated into a list of sections:
+-- The input stream is separated and output into a list of sections:
 --
--- * sections which can parsed by the pattern @sep@ will be captured as
---   matching sections in 'Right'
--- * non-matching sections of the stream will be captured in 'Left'.
+-- * Sections which can parsed by the pattern @sep@ will be parsed and captured
+--   as 'Right'.
+-- * Non-matching sections of the stream will be captured in 'Left'.
 --
--- There are two constraints on the output:
+-- The output list also has these properties:
 --
--- * The output list will non-empty. If there are no pattern matches, then
+-- * If the input is @""@ then the output list will be @[]@.
+-- * If there are no pattern matches, then
 --   the entire input stream will be returned as one non-matching 'Left' section.
---   If the input is @""@ then the output list will be @[Left ""]@.
--- * The output list will not contain two consecutive 'Left's.
+-- * The output list will not contain two consecutive 'Left' sections.
 --
 -- === Zero-width matches forbidden
 --
