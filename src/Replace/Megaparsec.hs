@@ -55,7 +55,6 @@ where
 import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Proxy
-import Control.Exception (throw)
 import Data.Typeable
 import Control.Monad
 import qualified Data.ByteString as B
@@ -68,13 +67,16 @@ import Replace.Megaparsec.Internal.Text
 -- == Separate and capture
 --
 -- Parser combinator to find all of the non-overlapping ocurrences
--- of the pattern @sep@ in a text stream. Separate the stream into sections:
+-- of the pattern parser @sep@ in a text stream.
+-- The 'sepCap' parser will always consume its entire input and can never fail.
+--
+-- === Output
+--
+-- The input stream is separated into a list of sections:
 --
 -- * sections which can parsed by the pattern @sep@ will be captured as
 --   matching sections in 'Right'
 -- * non-matching sections of the stream will be captured in 'Left'.
---
--- This parser will always consume its entire input and can never fail.
 --
 -- There are two constraints on the output:
 --
@@ -83,26 +85,39 @@ import Replace.Megaparsec.Internal.Text
 --   If the input is @""@ then the output list will be @[Left ""]@.
 -- * The output list will not contain two consecutive 'Left's.
 --
--- The pattern matching parser @sep@ will not be allowed to succeed without
--- consuming any input. If we allow the parser to match a zero-width pattern,
+-- === Zero-width matches forbidden
+--
+-- If the pattern matching parser @sep@ would succeed without consuming any
+-- input then 'sepCap' will force it to fail.
+-- If we allow @sep@ to match a zero-width pattern,
 -- then it can match the same zero-width pattern again at the same position
 -- on the next iteration, which would result in an infinite number of
--- overlapping pattern matches. So, for example, the
--- pattern @many digitChar@, which can match zero occurences of a digit,
--- will be treated by @sepCap@ as @some digitChar@, and required to match
--- at least one digit.
+-- overlapping pattern matches.
+--
+-- === Special accelerated inputs
+--
+-- There are specialization re-write rules to speed up this function when
+-- the input type is "Data.Text" or "Data.Bytestring".
+--
+-- === Error parameter
+--
+-- The error type parameter @e@ for @sep@ should usually be 'Data.Void',
+-- because @sep@ fails on every token in a non-matching 'Left' section,
+-- so parser failures will not be reported.
+--
+-- === Notes
 --
 -- This @sepCap@ parser combinator is the basis for all of the other
--- features of this module. It is similar to the @sep*@ family of functions
+-- features of this module.
+--
+-- It is similar to the @sep*@ family of functions
 -- found in
 -- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html parser-combinators>
 -- and
 -- <http://hackage.haskell.org/package/parsers/docs/Text-Parser-Combinators.html parsers>
 -- but, importantly, it returns the parsed result of the @sep@ parser instead
--- of throwing it away.
---
--- There are specialization re-write rules to speed up this function when
--- the input type is "Data.Text" or "Data.Bytestring".
+-- of throwing it away, like
+-- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>.
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
@@ -240,12 +255,9 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- We need the @Monoid s@ instance so that we can 'Data.Monoid.mconcat' the output
 -- stream.
 --
--- We need @Typeable s@ and @Show s@ for 'Control.Exception.throw'. In theory
--- this function should never throw an exception, because it only throws
--- when the 'sepCap' parser fails, and the 'sepCap' parser
--- can never fail. The error type parameter @e@ should usually be 'Data.Void'.
+-- The error type parameter @e@ should usually be 'Data.Void'.
 streamEdit
-    :: forall e s a. (Show e, ShowErrorComponent e, Typeable e, Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    :: forall e s a. (Ord e, Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
     => Parsec e s a
         -- ^ The parser @sep@ for the pattern of interest.
     -> (a -> s)
@@ -271,7 +283,7 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 -- If you want the @editor@ function or the parser @sep@ to remember some state,
 -- then run this in a stateful monad.
 streamEditT
-    :: forall e s m a. (Show e, ShowErrorComponent e, Typeable e, Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
     => ParsecT e s m a
         -- ^ The parser @sep@ for the pattern of interest.
     -> (a -> m s)
@@ -282,9 +294,7 @@ streamEditT
     -> m s
 streamEditT sep editor input = do
     runParserT (sepCap sep) "" input >>= \case
-        (Left err) -> throw err
-        -- sepCap can never fail, but if it does, throw.
-        -- Don't use MonadFail because Identity is not a MonadFail.
+        (Left _) -> undefined -- sepCap can never fail
         (Right r) -> fmap mconcat $ traverse (either return editor) r
 {-# INLINABLE streamEditT #-}
 
