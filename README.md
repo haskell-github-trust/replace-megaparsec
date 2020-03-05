@@ -185,7 +185,8 @@ for the matched patterns.
 Replace all carriage-return-newline instances with newline.
 
 ```haskell
-streamEdit (chunk "\r\n") (const "\n") "1\r\n2\r\n"
+let crnl = chunk "\r\n" :: Parsec Void String String
+streamEdit crnl (const "\n") "1\r\n2\r\n"
 ```
 ```haskell
 "1\n2\n"
@@ -196,7 +197,8 @@ streamEdit (chunk "\r\n") (const "\n") "1\r\n2\r\n"
 Replace alphabetic characters with the next character in the alphabet.
 
 ```haskell
-streamEdit (some letterChar) (fmap succ) "HAL 9000"
+let somelet = some letterChar :: Parsec Void String String
+streamEdit somelet (fmap succ) "HAL 9000"
 ```
 ```haskell
 "IBM 9000"
@@ -225,7 +227,8 @@ value from the environment.
 
 ```haskell
 import System.Environment
-streamEditT (char '{' *> manyTill anySingle (char '}')) getEnv "- {HOME} -"
+let bracevar = char '{' *> manyTill anySingle (char '}') :: ParsecT Void String IO String
+streamEditT bracevar getEnv "- {HOME} -"
 ```
 ```haskell
 "- /home/jbrock -"
@@ -270,18 +273,19 @@ script will find decimal numbers in a stream and replace them with their double.
 #!/usr/bin/env stack
 {- stack
   script
-  --resolver nightly-2019-09-13
+  --resolver lts-15
   --package megaparsec
   --package replace-megaparsec
 -}
 -- https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
 
+import Data.Void
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
 import Replace.Megaparsec
 
-main = interact $ streamEdit decimal (show . (*2))
+main = interact $ streamEdit (decimal :: Parsec Void String Int) (show . (*2))
 ```
 
 If you have
