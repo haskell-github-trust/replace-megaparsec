@@ -75,8 +75,13 @@ import Replace.Megaparsec.Internal.Text
 -- * non-matching sections of the stream will be captured in 'Left'.
 --
 -- This parser will always consume its entire input and can never fail.
--- If there are no pattern matches, then the entire input stream will be
--- returned as a non-matching 'Left' section.
+--
+-- There are two constraints on the output:
+--
+-- * The output list will non-empty. If there are no pattern matches, then
+--   the entire input stream will be returned as one non-matching 'Left' section.
+--   If the input is @""@ then the output list will be @[Left ""]@.
+-- * The output list will not contain two consecutive 'Left's.
 --
 -- The pattern matching parser @sep@ will not be allowed to succeed without
 -- consuming any input. If we allow the parser to match a zero-width pattern,
@@ -96,6 +101,8 @@ import Replace.Megaparsec.Internal.Text
 -- but, importantly, it returns the parsed result of the @sep@ parser instead
 -- of throwing it away.
 --
+-- There are specialization re-write rules to speed up this function when
+-- the input type is "Data.Text" or "Data.Bytestring".
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
