@@ -64,6 +64,8 @@ version.
   string-to-number conversion function fails. A typed parser will perform both
   the pattern match and the conversion, so it will never be in that situation.
 
+  [Parse, don't validate.](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)
+
 * Regular expressions are only able to pattern-match
   [regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
   grammers.
@@ -361,27 +363,28 @@ for details.
 
 | Program                                           | dense     | sparse   |
 | :---                                              |      ---: |     ---: |
-| Python `re.sub`¹                                  | 89.23ms   | 23.98ms  |
-| Perl `s///ge`²                                    | 180.65ms  | 5.60ms   |
-| [`Replace.Megaparsec.streamEdit`][m] `String`     | 454.95ms  | 375.04ms |
+| [Python 3.7.4 `re.sub`][sub] *repl* function      | 89.23ms   | 23.98ms  |
+| [Perl 5 `s///ge`][s]                              | 180.65ms  | 5.02ms   |
+| [`Replace.Megaparsec.streamEdit`][m] `String`     | 441.94ms  | 375.04ms |
 | [`Replace.Megaparsec.streamEdit`][m] `ByteString` | 529.99ms  | 73.76ms  |
 | [`Replace.Megaparsec.streamEdit`][m] `Text`       | 547.47ms  | 139.21ms |
 | [`Replace.Attoparsec.ByteString.streamEdit`][ab]  | 394.12ms  | 41.13ms  |
 | [`Replace.Attoparsec.Text.streamEdit`][at]        | 515.26ms  | 46.10ms  |
 | [`Text.Regex.Applicative.replace`][ra] `String`   | 1083.98ms | 646.40ms |
-| [`Text.Regex.PCRE.Heavy.gsub`][ph] `Text`         | ⊥³        | 14.76ms  |
+| [`Text.Regex.PCRE.Heavy.gsub`][ph] `Text`         | > 10min   | 14.29ms  |
+| [`Control.Lens.Regex.ByteString.match`][lb]       | > 10min   | 4.27ms   |
+| [`Control.Lens.Regex.Text.match`][lt]             | > 10min   | 14.74ms  |
 
-¹ Python 3.7.4
-
-² This is perl 5, version 28, subversion 2 (v5.28.2) built for x86_64-linux-thread-multi
-
-³ Does not finish.
-
+[sub]: https://docs.python.org/3/library/re.html#re.sub
+[s]: https://perldoc.perl.org/functions/s.html
 [m]: https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEdit
 [ab]: https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-ByteString.html#v:streamEdit
 [at]: https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-Text.html#v:streamEdit
 [ra]: http://hackage.haskell.org/package/regex-applicative/docs/Text-Regex-Applicative.html#v:replace
-[ph]: http://hackage.haskell.org/package/pcre-heavy/docs/Text-Regex-PCRE-Heavy.html
+[ss]: http://hackage.haskell.org/package/stringsearch/docs/Data-ByteString-Search.html#v:replace
+[ph]: http://hackage.haskell.org/package/pcre-heavy/docs/Text-Regex-PCRE-Heavy.html#v:gsub
+[lb]: https://hackage.haskell.org/package/lens-regex-pcre/docs/Control-Lens-Regex-ByteString.html#v:match
+[lt]: https://hackage.haskell.org/package/lens-regex-pcre/docs/Control-Lens-Regex-Text.html#v:match
 
 
 # Hypothetically Asked Questions
@@ -395,7 +398,9 @@ for details.
 
 2. *Is this a good idea?*
 
-   You may have heard it suggested that monadic parsers are better when
+   You may have
+   [heard it suggested](https://stackoverflow.com/questions/57667534/how-can-i-use-a-parser-in-haskell-to-find-the-locations-of-some-substrings-in-a/57712672#comment101804063_57667534)
+   that monadic parsers are better when
    the input stream is mostly signal, and regular expressions are better
    when the input stream is mostly noise.
 
