@@ -87,6 +87,7 @@ root directory.
 The examples depend on these imports.
 
 ```haskell
+import Data.Void
 import Replace.Megaparsec
 import Text.Megaparsec
 import Text.Megaparsec.Char
