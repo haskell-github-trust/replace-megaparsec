@@ -400,18 +400,19 @@ for details.
 
    You may have
    [heard it suggested](https://stackoverflow.com/questions/57667534/how-can-i-use-a-parser-in-haskell-to-find-the-locations-of-some-substrings-in-a/57712672#comment101804063_57667534)
-   that monadic parsers are better when
+   that monadic parsers are better for pattern-matching when
    the input stream is mostly signal, and regular expressions are better
    when the input stream is mostly noise.
 
-   The premise of this library is:
-   that sentiment is outdated; monadic parsers are great for finding
-   small patterns in a stream of otherwise uninteresting text; and the
-   reluctance to forego the speedup opportunities afforded by restricting
-   ourselves to regular grammars is an old superstition about
+   The premise of this library is that monadic parsers are great for finding
+   small signal patterns in a stream of otherwise noisy text.
+
+   There is a reluctance to forego the speedup opportunities afforded by restricting
+   ourselves to regular grammars, but this is an old superstition about
    opportunities which
    [remain mostly unexploited anyway](https://swtch.com/~rsc/regexp/regexp1.html).
-   The performance compromise of allowing stack memory allocation (a.k.a pushdown
-   automata, a.k.a context-free grammar) was once considered
-   [controversial for *general-purpose* programming languages](https://vanemden.wordpress.com/2014/06/18/how-recursion-got-into-programming-a-comedy-of-errors-3/). I think we
+   The performance compromise of allowing stack memory allocation (a.k.a. pushdown
+   automata, a.k.a. context-free grammar) was once considered
+   [controversial for *general-purpose* programming languages](https://vanemden.wordpress.com/2014/06/18/how-recursion-got-into-programming-a-comedy-of-errors-3/).
+   I think we
    can now resolve that controversy the same way for pattern matching languages.
