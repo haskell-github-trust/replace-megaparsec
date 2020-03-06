@@ -97,7 +97,7 @@ import Replace.Megaparsec.Internal.Text
 -- === Special accelerated inputs
 --
 -- There are specialization re-write rules to speed up this function when
--- the input type is "Data.Text" or "Data.Bytestring".
+-- the input type is "Data.Text" or "Data.ByteString".
 --
 -- === Error parameter
 --
@@ -248,8 +248,8 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 -- with "Text.Megaparsec":
 -- "Data.Text",
 -- "Data.Text.Lazy",
--- "Data.Bytestring",
--- "Data.Bytestring.Lazy",
+-- "Data.ByteString",
+-- "Data.ByteString.Lazy",
 -- and "Data.String".
 --
 -- We need the @Monoid s@ instance so that we can 'Data.Monoid.mconcat' the output
