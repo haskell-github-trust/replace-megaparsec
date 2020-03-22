@@ -63,7 +63,6 @@ version.
   the regular expression says it has found a numeric string but the
   string-to-number conversion function fails. A typed parser will perform both
   the pattern match and the conversion, so it will never be in that situation.
-
   [Parse, don't validate.](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)
 
 * Regular expressions are only able to pattern-match
@@ -407,8 +406,8 @@ for details.
    The premise of this library is that monadic parsers are great for finding
    small signal patterns in a stream of otherwise noisy text.
 
-   There is a reluctance to forego the speedup opportunities afforded by restricting
-   ourselves to regular grammars, but this is an old superstition about
+   Our reluctance to forego the speedup opportunities afforded by restricting
+   ourselves to regular grammars is an old superstition about
    opportunities which
    [remain mostly unexploited anyway](https://swtch.com/~rsc/regexp/regexp1.html).
    The performance compromise of allowing stack memory allocation (a.k.a. pushdown

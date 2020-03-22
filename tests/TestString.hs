@@ -47,6 +47,7 @@ tests = return
         (findAll ((takeWhileP Nothing (=='𝅘𝅥𝅯') :: Parser String)))
         ("𝄞𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥")
         [Left "𝄞𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥", Right "𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯", Left "𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥"]
+    , Test $ runParserTest "empty input" (sepCap (fail "" :: Parser ())) "" []
     , Test $ streamEditTest "x to o"
         (string "x" :: Parser String) (const "o")
         "x x x" "o o o"
@@ -56,6 +57,7 @@ tests = return
     , Test $ streamEditTest "ordering"
         (string "456" :: Parser String) (const "ABC")
         "123456789" "123ABC789"
+    , Test $ streamEditTest "empty input" (match (fail "" :: Parser ())) (fst) "" ""
     ]
   where
     runParserTest nam p input expected = TestInstance
