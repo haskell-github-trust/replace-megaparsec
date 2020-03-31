@@ -107,7 +107,7 @@ Separate the input string into sections which can be parsed as a hexadecimal
 number with a prefix `"0x"`, and sections which can't. Parse the numbers.
 
 ```haskell
-let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
+let hexparser = chunk "0x" *> hexadecimal :: Parsec Void String Integer
 parseTest (sepCap hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
@@ -120,7 +120,7 @@ Just get the strings sections which match the hexadecimal parser, throw away
 the parsed number.
 
 ```haskell
-let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
+let hexparser = chunk "0x" *> hexadecimal :: Parsec Void String Integer
 parseTest (findAll hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
@@ -133,7 +133,7 @@ Capture the parsed hexadecimal number, as well as the string section which
 parses as a hexadecimal number.
 
 ```haskell
-let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
+let hexparser = chunk "0x" *> hexadecimal :: Parsec Void String Integer
 parseTest (findAllCap hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
@@ -149,7 +149,7 @@ Print a list of the offsets of the beginning of every pattern match.
 ```haskell
 import Data.Either
 let spaceoffset = getOffset <* space1 :: Parsec Void String Int
-parseTest (return . rights =<< sepCap spaceoffset) " a  b  "
+parseTest (pure . rights =<< sepCap spaceoffset) " a  b  "
 ```
 ```haskell
 [0,2,5]
@@ -162,13 +162,14 @@ Find groups of balanced nested parentheses. This is an example of a
 expression. We can express the pattern with a recursive parser.
 
 ```haskell
+import Data.Functor
 let parens :: Parsec Void String ()
     parens = do
         char '('
         manyTill
             (void (noneOf "()") <|> void parens)
             (char ')')
-        return ()
+        pure ()
 
 parseTest (findAll parens) "(()) (()())"
 ```
@@ -215,7 +216,7 @@ and if *`r≤16`*, then replace *`s`* with a decimal number. Uses the
 combinator.
 
 ```haskell
-let hexparser = chunk "0x" >> hexadecimal :: Parsec Void String Integer
+let hexparser = chunk "0x" *> hexadecimal :: Parsec Void String Integer
 streamEdit (match hexparser) (\(s,r) -> if r<=16 then show r else s) "0xA 000 0xFFFF"
 ```
 ```haskell
