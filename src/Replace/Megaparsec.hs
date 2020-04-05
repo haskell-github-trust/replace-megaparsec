@@ -49,7 +49,7 @@ module Replace.Megaparsec
     -- * Running parser
   , streamEdit
   , streamEditT
-  , splitCap
+  , breakCap
   )
 where
 
@@ -301,9 +301,9 @@ streamEditT sep editor input = do
 
 
 -- |
--- == Split and capture
+-- == Break and capture
 --
--- Find the first occurence of the pattern, capture the found pattern, and split
+-- Find the first occurence of the pattern, capture the found pattern, and break
 -- the input on the found pattern.
 --
 -- The pattern parser 'sep' may match a zero-width pattern (a pattern which
@@ -317,7 +317,7 @@ streamEditT sep editor input = do
 --    after the pattern match. 'prefix' and 'suffix' may be zero-length strings.
 --
 -- See also
--- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>, which works similarly, but 'splitCap' is specialized
+-- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>, which works similarly, but 'breakCap' is specialized
 --
 -- === Access the matched section of text
 --
@@ -328,14 +328,14 @@ streamEditT sep editor input = do
 -- There are specialization re-write rules to speed up this function when
 -- the input type is "Data.Text" or "Data.ByteString".
 --
-splitCap
+breakCap
     :: forall e s a. (Ord e, Stream s, Tokens s ~ s)
     => Parsec e s a
         -- ^ The parser @sep@ for the pattern of interest.
     -> s
         -- ^ The input stream of text.
     -> Maybe (s, a, s)
-splitCap sep input =
+breakCap sep input =
     case runParser pser "" input of
         (Left _) -> Nothing
         (Right (as, result, suffix)) ->
@@ -345,5 +345,5 @@ splitCap sep input =
       (as, end) <- manyTill_ anySingle sep
       suffix <- takeRest
       pure (as, end, suffix)
-{-# INLINE splitCap #-}
+{-# INLINE breakCap #-}
 
