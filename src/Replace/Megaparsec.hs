@@ -55,7 +55,6 @@ where
 import Data.Bifunctor
 import Data.Functor.Identity
 import Data.Proxy
-import Data.Typeable
 import Control.Monad
 import qualified Data.ByteString as B
 import qualified Data.Text as T
@@ -257,7 +256,7 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 --
 -- The error type parameter @e@ should usually be 'Data.Void'.
 streamEdit
-    :: forall e s a. (Ord e, Stream s, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    :: forall e s a. (Ord e, Stream s, Monoid s, Tokens s ~ s)
     => Parsec e s a
         -- ^ The parser @sep@ for the pattern of interest.
     -> (a -> s)
@@ -283,7 +282,7 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 -- If you want the @editor@ function or the parser @sep@ to remember some state,
 -- then run this in a stateful monad.
 streamEditT
-    :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s, Show s, Show (Token s), Typeable s)
+    :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s)
     => ParsecT e s m a
         -- ^ The parser @sep@ for the pattern of interest.
     -> (a -> m s)
