@@ -1,5 +1,13 @@
 # Revision history for replace-megaparsec
 
+## 1.4.0.0 -- 2020-05-06
+
+__Running Parsers__: Add `splitCap` and `breakCap`.
+
+__Parser Combinators__: Add `anyTill`.
+
+Remove `Show` and `Typeable` constraints on `streamEditT`.
+
 ## 1.3.0.0 -- 2020-03-06
 
 `sepCap` won't throw.

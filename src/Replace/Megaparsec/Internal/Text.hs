@@ -6,9 +6,11 @@
 --
 -- This internal module is for 'Data.Text.Text' specializations.
 --
--- The functions in this module are supposed to be chosen automatically
+-- The functions in this module are intended to be chosen automatically
 -- by rewrite rules in the "Replace.Megaparsec" module, so you should never
 -- need to import this module.
+--
+-- Names in this module may change without a major version increment.
 
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -17,6 +19,7 @@ module Replace.Megaparsec.Internal.Text
   (
     -- * Parser combinator
     sepCapText
+  , anyTillText
   )
 where
 
@@ -71,4 +74,21 @@ sepCapText sep = getInput >>= go
                     pure [Left restBegin]
                 else pure []
             )
+
+{-# INLINE [1] anyTillText #-}
+anyTillText
+    :: forall e s m a. (MonadParsec e s m, s ~ T.Text)
+    => m a -- ^ The pattern matching parser @sep@
+    -> m (Tokens s, a)
+anyTillText sep = do
+    (Text tarray beginIndx beginLen) <- getInput
+    (thisLen, x) <- go
+    pure (Text tarray beginIndx (beginLen - thisLen), x)
+  where
+    go = do
+      (Text _ _ thisLen) <- getInput
+      r <- optional sep
+      case r of
+        Nothing -> anySingle >> go
+        Just x -> pure (thisLen, x)
 

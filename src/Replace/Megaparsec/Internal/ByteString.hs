@@ -6,9 +6,11 @@
 --
 -- This internal module is for 'Data.ByteString.ByteString' specializations.
 --
--- The functions in this module are supposed to be chosen automatically
+-- The functions in this module are intended to be chosen automatically
 -- by rewrite rules in the "Replace.Megaparsec" module, so you should never
 -- need to import this module.
+--
+-- Names in this module may change without a major version increment.
 
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -17,6 +19,7 @@ module Replace.Megaparsec.Internal.ByteString
   (
     -- * Parser combinator
     sepCapByteString
+  , anyTillByteString
   )
 where
 
@@ -71,3 +74,19 @@ sepCapByteString sep = getInput >>= go
                 else pure []
             )
 
+{-# INLINE [1] anyTillByteString #-}
+anyTillByteString
+    :: forall e s m a. (MonadParsec e s m, s ~ B.ByteString)
+    => m a -- ^ The pattern matching parser @sep@
+    -> m (Tokens s, a)
+anyTillByteString sep = do
+    begin <- getInput
+    (end, x) <- go
+    pure (B.take (B.length begin - B.length end) begin, x)
+  where
+    go = do
+      end <- getInput
+      r <- optional sep
+      case r of
+        Nothing -> anySingle >> go
+        Just x -> pure (end, x)

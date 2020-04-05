@@ -1,0 +1,5 @@
+# stack.yaml for the Dockerfile for usage examples hosted on mybinder.org
+
+extra-deps:
+  - /home/jovyan/replace-megaparsec
+  - parser-combinators-1.2.0
