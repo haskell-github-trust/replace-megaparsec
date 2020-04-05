@@ -37,6 +37,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TupleSections #-}
 
 module Replace.Megaparsec
   (
@@ -48,6 +49,7 @@ module Replace.Megaparsec
     -- * Running parser
   , streamEdit
   , streamEditT
+  , splitCap
   )
 where
 
@@ -296,4 +298,52 @@ streamEditT sep editor input = do
         (Left _) -> undefined -- sepCap can never fail
         (Right r) -> fmap mconcat $ traverse (either return editor) r
 {-# INLINABLE streamEditT #-}
+
+
+-- |
+-- == Split and capture
+--
+-- Find the first occurence of the pattern, capture the found pattern, and split
+-- the input on the found pattern.
+--
+-- The pattern parser 'sep' may match a zero-width pattern (a pattern which
+-- consumes no parser input on success).
+--
+-- === Output
+--
+--  * 'Nothing' when no pattern match was found.
+--  * 'Just (prefix, parse_result, suffix)' for the result of parsing the
+--    pattern match, and the 'prefix' string before and the 'suffix' string
+--    after the pattern match. 'prefix' and 'suffix' may be zero-length strings.
+--
+-- See also
+-- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>, which works similarly, but 'splitCap' is specialized
+--
+-- === Access the matched section of text
+--
+-- If you want to capture the matched string, then combine the pattern
+-- parser @sep@ with 'Text.Megaparsec.match'.
+--
+-- === Special accelerated inputs
+-- There are specialization re-write rules to speed up this function when
+-- the input type is "Data.Text" or "Data.ByteString".
+--
+splitCap
+    :: forall e s a. (Ord e, Stream s, Tokens s ~ s)
+    => Parsec e s a
+        -- ^ The parser @sep@ for the pattern of interest.
+    -> s
+        -- ^ The input stream of text.
+    -> Maybe (s, a, s)
+splitCap sep input =
+    case runParser pser "" input of
+        (Left _) -> Nothing
+        (Right (as, result, suffix)) ->
+            Just (tokensToChunk (Proxy::Proxy s) as, result, suffix)
+  where
+    pser = do
+      (as, end) <- manyTill_ anySingle sep
+      suffix <- takeRest
+      pure (as, end, suffix)
+{-# INLINE splitCap #-}
 
