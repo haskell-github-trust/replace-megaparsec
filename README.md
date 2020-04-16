@@ -3,6 +3,7 @@
 [![Hackage](https://img.shields.io/hackage/v/replace-megaparsec.svg?style=flat)](https://hackage.haskell.org/package/replace-megaparsec)
 [![Stackage Nightly](http://stackage.org/package/replace-megaparsec/badge/nightly)](http://stackage.org/nightly/package/replace-megaparsec)
 [![Stackage LTS](http://stackage.org/package/replace-megaparsec/badge/lts)](http://stackage.org/lts/package/replace-megaparsec)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jamesdbrock/replace-megaparsec/master?urlpath=lab/tree/work/ReplaceMegaparsecUsage.ipynb)
 
 * [Usage Examples](#usage-examples)
 * [In the Shell](#in-the-shell)
@@ -80,6 +81,10 @@ version.
   an `editor` function which can perform any computation, including IO.
 
 # Usage Examples
+
+These usage examples can be run in a live Jupyter notebook hosted
+by [mybinder.org](https://mybinder.org/). Click the badge to launch:
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jamesdbrock/replace-megaparsec/master?urlpath=lab/tree/work/ReplaceMegaparsecUsage.ipynb)
 
 Try the examples in `ghci` by
 running `cabal v2-repl` in the `replace-megaparsec/`
