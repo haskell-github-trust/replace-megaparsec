@@ -45,6 +45,7 @@ module Replace.Megaparsec
     sepCap
   , findAll
   , findAllCap
+  , anyTill
 
     -- * Running parser
   , streamEdit
@@ -108,17 +109,13 @@ import Replace.Megaparsec.Internal.Text
 --
 -- === Notes
 --
--- This @sepCap@ parser combinator is the basis for all of the other
--- features of this module.
---
--- It is similar to the @sep*@ family of functions
+-- @sepCap@ is similar to the @sep*@ family of parser combinators
 -- found in
 -- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html parser-combinators>
 -- and
--- <http://hackage.haskell.org/package/parsers/docs/Text-Parser-Combinators.html parsers>
--- but, importantly, it returns the parsed result of the @sep@ parser instead
--- of throwing it away, like
--- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>.
+-- <http://hackage.haskell.org/package/parsers/docs/Text-Parser-Combinators.html parsers>,
+-- but it returns the parsed result of the @sep@ parser instead
+-- of throwing it away.
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
@@ -260,7 +257,7 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 streamEdit
     :: forall e s a. (Ord e, Stream s, Monoid s, Tokens s ~ s)
     => Parsec e s a
-        -- ^ The parser @sep@ for the pattern of interest.
+        -- ^ The pattern matching parser @sep@
     -> (a -> s)
         -- ^ The @editor@ function. Takes a parsed result of @sep@
         -- and returns a new stream section for the replacement.
@@ -286,7 +283,7 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 streamEditT
     :: forall e s m a. (Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s)
     => ParsecT e s m a
-        -- ^ The parser @sep@ for the pattern of interest.
+        -- ^ The pattern matching parser @sep@
     -> (a -> m s)
         -- ^ The @editor@ function. Takes a parsed result of @sep@
         -- and returns a new stream section for the replacement.
@@ -301,23 +298,28 @@ streamEditT sep editor input = do
 
 
 -- |
--- == Break and capture
+-- == Break stream on pattern
 --
--- Find the first occurence of the pattern, capture the found pattern, and break
--- the input on the found pattern.
+-- Find the first occurence of a pattern in a text stream, capture the found
+-- pattern, and break the input text stream on the found pattern.
 --
--- The pattern parser 'sep' may match a zero-width pattern (a pattern which
+-- The 'breakCap' function is like 'Data.List.takeWhile', but can be predicated
+-- beyond more than just the next one token. It's also like 'Data.Text.breakOn',
+-- but the @needle@ can be a pattern instead of a constant string.
+--
+-- Be careful not to look too far
+-- ahead; if the @sep@ parser looks to the end of the input then 'breakCap'
+-- could be /O(n²)/.
+--
+-- The pattern parser @sep@ may match a zero-width pattern (a pattern which
 -- consumes no parser input on success).
 --
 -- === Output
 --
---  * 'Nothing' when no pattern match was found.
---  * 'Just (prefix, parse_result, suffix)' for the result of parsing the
---    pattern match, and the 'prefix' string before and the 'suffix' string
---    after the pattern match. 'prefix' and 'suffix' may be zero-length strings.
---
--- See also
--- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>, which works similarly, but 'breakCap' is specialized
+--  * @Nothing@ when no pattern match was found.
+--  * @Just (prefix, parse_result, suffix)@ for the result of parsing the
+--    pattern match, and the @prefix@ string before and the @suffix@ string
+--    after the pattern match. @prefix@ and @suffix@ may be zero-length strings.
 --
 -- === Access the matched section of text
 --
@@ -325,25 +327,66 @@ streamEditT sep editor input = do
 -- parser @sep@ with 'Text.Megaparsec.match'.
 --
 -- === Special accelerated inputs
--- There are specialization re-write rules to speed up this function when
--- the input type is "Data.Text" or "Data.ByteString".
 --
+-- There are specialization re-write rules to speed up this function when
+-- the input stream type @s@ is "Data.Text" or "Data.ByteString".
+--
+-- === Type constraints
+--
+-- The type of the stream of text that is input must
+-- be @Stream s@ such that @Tokens s ~ s@, because we want
+-- to output the same type of stream that was input. That requirement is
+-- satisfied for all the 'Text.Megaparsec.Stream' instances included
+-- with "Text.Megaparsec":
+-- "Data.Text",
+-- "Data.Text.Lazy",
+-- "Data.ByteString",
+-- "Data.ByteString.Lazy",
+-- and "Data.String".
+--
+-- The error type parameter @e@ should usually be 'Data.Void'.
 breakCap
     :: forall e s a. (Ord e, Stream s, Tokens s ~ s)
     => Parsec e s a
-        -- ^ The parser @sep@ for the pattern of interest.
+        -- ^ The pattern matching parser @sep@
     -> s
         -- ^ The input stream of text.
     -> Maybe (s, a, s)
 breakCap sep input =
     case runParser pser "" input of
         (Left _) -> Nothing
-        (Right (as, result, suffix)) ->
-            Just (tokensToChunk (Proxy::Proxy s) as, result, suffix)
+        (Right x) -> Just x
   where
     pser = do
-      (as, end) <- manyTill_ anySingle sep
+      (prefix, cap) <- anyTill sep
       suffix <- takeRest
-      pure (as, end, suffix)
+      pure (prefix, cap, suffix)
 {-# INLINE breakCap #-}
 
+-- |
+-- == Specialized <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>
+--
+-- Parser combinator to consume input until the @sep@ pattern matches,
+-- equivalent to @manyTill_ anySingle sep@.
+--
+-- This combinator will produce a parser which
+-- acts like 'Text.Megaparsec.takeWhileP' but is predicated beyond more than
+-- just the next one token.
+--
+-- == Special accelerated inputs
+--
+-- 'anyTill' is also like 'Text.Megaparsec.takeWhileP' in
+-- that it will be “fast” when applied to an input stream type @s@
+-- for which there are specialization re-write rules. There are specialization
+-- re-write rules for "Data.Text" and "Data.ByteString".
+--
+-- @sep@ may be a zero-consumption parser, in which case after 'anyTill'
+-- succeeds, then the parser input state will be at the beginning of the place
+-- where @sep@ matched.
+anyTill
+    :: forall e s m a. (MonadParsec e s m)
+    => m a -- ^ The pattern matching parser @sep@
+    -> m (Tokens s, a)
+anyTill sep = do
+    (as, end) <- manyTill_ anySingle sep
+    pure (tokensToChunk (Proxy::Proxy s) as, end)
