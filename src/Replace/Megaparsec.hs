@@ -312,7 +312,8 @@ streamEditT sep editor input = do
 -- could be /O(n²)/.
 --
 -- The pattern parser @sep@ may match a zero-width pattern (a pattern which
--- consumes no parser input on success).
+-- consumes no parser input on success). In that case the input will
+-- equal @prefix <> suffix@.
 --
 -- === Output
 --
@@ -324,7 +325,17 @@ streamEditT sep editor input = do
 -- === Access the matched section of text
 --
 -- If you want to capture the matched string, then combine the pattern
--- parser @sep@ with 'Text.Megaparsec.match'.
+-- parser @sep@ with 'Text.Megaparsec.match'. For all @input@, @sep@, if
+--
+-- @
+-- let (prefix, (infix, _), suffix) = breakCap ('Text.Megaparsec.match' sep) input
+-- @
+--
+-- then
+--
+-- @
+-- input == prefix <> infix <> suffix
+-- @
 --
 -- === Special accelerated inputs
 --
@@ -352,6 +363,7 @@ breakCap
     -> s
         -- ^ The input stream of text.
     -> Maybe (s, a, s)
+        -- ^ Maybe (prefix, parse_result, suffix)
 breakCap sep input =
     case runParser pser "" input of
         (Left _) -> Nothing
@@ -369,6 +381,10 @@ breakCap sep input =
 -- Parser combinator to consume input until the @sep@ pattern matches,
 -- equivalent to @manyTill_ anySingle sep@.
 --
+-- @sep@ may be a zero-consumption parser, in which case after 'anyTill'
+-- succeeds, then the parser input state will be at the beginning of the place
+-- where @sep@ matched.
+--
 -- This combinator will produce a parser which
 -- acts like 'Text.Megaparsec.takeWhileP' but is predicated beyond more than
 -- just the next one token.
@@ -379,10 +395,6 @@ breakCap sep input =
 -- that it will be “fast” when applied to an input stream type @s@
 -- for which there are specialization re-write rules. There are specialization
 -- re-write rules for "Data.Text" and "Data.ByteString".
---
--- @sep@ may be a zero-consumption parser, in which case after 'anyTill'
--- succeeds, then the parser input state will be at the beginning of the place
--- where @sep@ matched.
 anyTill
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
@@ -390,3 +402,24 @@ anyTill
 anyTill sep = do
     (as, end) <- manyTill_ anySingle sep
     pure (tokensToChunk (Proxy::Proxy s) as, end)
+{-# INLINE [1] anyTill #-}
+
+#if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
+{-# RULES "anyTill/ByteString" [2]
+ forall e. forall.
+ anyTill           @e @B.ByteString =
+ anyTillByteString @e @B.ByteString #-}
+{-# RULES "anyTill/Text" [2]
+ forall e. forall.
+ anyTill     @e @T.Text =
+ anyTillText @e @T.Text #-}
+#elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
+{-# RULES "anyTill/ByteString" [2]
+ forall (pa :: ParsecT e B.ByteString m a).
+ anyTill           @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
+ anyTillByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa #-}
+{-# RULES "anyTill/Text" [2]
+ forall (pa :: ParsecT e T.Text m a).
+ anyTill     @e @T.Text @(ParsecT e T.Text m) @a pa =
+ anyTillText @e @T.Text @(ParsecT e T.Text m) @a pa #-}
+#endif

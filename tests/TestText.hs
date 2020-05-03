@@ -60,6 +60,14 @@ tests = return
         (string "456" :: Parser T.Text) (const "ABC")
         "123456789" "123ABC789"
     , Test $ streamEditTest "empty input" (match (fail "" :: Parser ())) (fst) "" ""
+    , Test $ breakCapTest "basic" (upperChar :: Parser Char) "aAa" (Just ("a", 'A', "a"))
+    , Test $ breakCapTest "first" (upperChar :: Parser Char) "Aa" (Just ("", 'A', "a"))
+    , Test $ breakCapTest "last" (upperChar :: Parser Char) "aA" (Just ("a", 'A', ""))
+    , Test $ breakCapTest "fail" (upperChar :: Parser Char) "aaa" Nothing
+    , Test $ breakCapTest "match" (match (upperChar :: Parser Char)) "aAa" (Just ("a", ("A",'A'), "a"))
+    , Test $ breakCapTest "zero-width" (lookAhead (upperChar :: Parser Char)) "aAa" (Just ("a", 'A', "Aa"))
+    , Test $ breakCapTest "empty input" (upperChar :: Parser Char) "" Nothing
+    , Test $ breakCapTest "empty input zero-width" (return () :: Parser ()) "" (Just ("", (), ""))
     ]
   where
     runParserTest nam p input expected = TestInstance
@@ -85,6 +93,19 @@ tests = return
                     else return (Finished $ TestSuite.Fail
                                 $ show output ++ " ≠ " ++ show expected)
             , name = "streamEdit " ++ nam
+            , tags = []
+            , options = []
+            , setOption = \_ _ -> Left "no options supported"
+            }
+
+    breakCapTest nam sep input expected = TestInstance
+            { run = do
+                let output = breakCap sep input
+                if (output == expected)
+                    then return (Finished Pass)
+                    else return (Finished $ TestSuite.Fail
+                                $ show output ++ " ≠ " ++ show expected)
+            , name = "breakCap " ++ nam
             , tags = []
             , options = []
             , setOption = \_ _ -> Left "no options supported"

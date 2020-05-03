@@ -58,6 +58,14 @@ tests = return
         (string "456" :: Parser B.ByteString) (const "ABC")
         "123456789" "123ABC789"
     , Test $ streamEditTest "empty input" (match (fail "" :: Parser ())) (fst) "" ""
+    , Test $ breakCapTest "basic" (upperChar :: Parser Word8) "aAa" (Just ("a", c2w 'A', "a"))
+    , Test $ breakCapTest "first" (upperChar :: Parser Word8) "Aa" (Just ("", c2w 'A', "a"))
+    , Test $ breakCapTest "last" (upperChar :: Parser Word8) "aA" (Just ("a", c2w 'A', ""))
+    , Test $ breakCapTest "fail" (upperChar :: Parser Word8) "aaa" Nothing
+    , Test $ breakCapTest "match" (match (upperChar :: Parser Word8)) "aAa" (Just ("a", ("A",c2w 'A'), "a"))
+    , Test $ breakCapTest "zero-width" (lookAhead (upperChar :: Parser Word8)) "aAa" (Just ("a", c2w 'A', "Aa"))
+    , Test $ breakCapTest "empty input" (upperChar :: Parser Word8) "" Nothing
+    , Test $ breakCapTest "empty input zero-width" (return () :: Parser ()) "" (Just ("", (), ""))
     ]
   where
     runParserTest nam p input expected = TestInstance
@@ -88,6 +96,19 @@ tests = return
             , setOption = \_ _ -> Left "no options supported"
             }
 
+    breakCapTest nam sep input expected = TestInstance
+            { run = do
+                let output = breakCap sep input
+                if (output == expected)
+                    then return (Finished Pass)
+                    else return (Finished $ TestSuite.Fail
+                                $ show output ++ " ≠ " ++ show expected)
+            , name = "breakCap " ++ nam
+            , tags = []
+            , options = []
+            , setOption = \_ _ -> Left "no options supported"
+            }
+
     scinum :: Parser (Double, Integer)
     scinum = do
         -- This won't parse mantissas that contain a decimal point,
@@ -97,7 +118,6 @@ tests = return
         _ <- chunk "E"
         e <- decimal
         return (m, e)
-
 
     offsetA :: Parser Int
     offsetA = getOffset <* chunk "A"

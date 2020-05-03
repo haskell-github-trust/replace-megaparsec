@@ -17,6 +17,7 @@ module Replace.Megaparsec.Internal.Text
   (
     -- * Parser combinator
     sepCapText
+  , anyTillText
   )
 where
 
@@ -72,3 +73,14 @@ sepCapText sep = getInput >>= go
                 else pure []
             )
 
+{-# INLINE [1] anyTillText #-}
+anyTillText
+    :: forall e s m a. (MonadParsec e s m, s ~ T.Text)
+    => m a -- ^ The pattern matching parser @sep@
+    -> m (Tokens s, a)
+anyTillText sep = do
+    (Text tarray beginIndx beginLen) <- getInput
+    x <- skipManyTill anySingle sep
+    -- (_, x) <- manyTill_ anySingle sep
+    (Text _ _ thisLen) <- getInput
+    pure (Text tarray beginIndx (beginLen - thisLen), x)

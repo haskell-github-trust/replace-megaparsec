@@ -17,6 +17,7 @@ module Replace.Megaparsec.Internal.ByteString
   (
     -- * Parser combinator
     sepCapByteString
+  , anyTillByteString
   )
 where
 
@@ -71,3 +72,14 @@ sepCapByteString sep = getInput >>= go
                 else pure []
             )
 
+{-# INLINE [1] anyTillByteString #-}
+anyTillByteString
+    :: forall e s m a. (MonadParsec e s m, s ~ B.ByteString)
+    => m a -- ^ The pattern matching parser @sep@
+    -> m (Tokens s, a)
+anyTillByteString sep = do
+    begin <- getInput
+    x <- skipManyTill anySingle sep
+    -- (_, x) <- manyTill_ anySingle sep
+    end <- getInput
+    pure (B.take (B.length begin - B.length end) begin, x)
