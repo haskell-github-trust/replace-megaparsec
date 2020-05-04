@@ -80,7 +80,13 @@ anyTillText
     -> m (Tokens s, a)
 anyTillText sep = do
     (Text tarray beginIndx beginLen) <- getInput
-    x <- skipManyTill anySingle sep
-    -- (_, x) <- manyTill_ anySingle sep
-    (Text _ _ thisLen) <- getInput
+    (thisLen, x) <- go
     pure (Text tarray beginIndx (beginLen - thisLen), x)
+  where
+    go = do
+      (Text _ _ thisLen) <- getInput
+      r <- optional sep
+      case r of
+        Nothing -> anySingle >> go
+        Just x -> pure (thisLen, x)
+

@@ -79,7 +79,12 @@ anyTillByteString
     -> m (Tokens s, a)
 anyTillByteString sep = do
     begin <- getInput
-    x <- skipManyTill anySingle sep
-    -- (_, x) <- manyTill_ anySingle sep
-    end <- getInput
+    (end, x) <- go
     pure (B.take (B.length begin - B.length end) begin, x)
+  where
+    go = do
+      end <- getInput
+      r <- optional sep
+      case r of
+        Nothing -> anySingle >> go
+        Just x -> pure (end, x)

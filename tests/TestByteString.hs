@@ -76,7 +76,7 @@ tests = return
                         if (output == expected)
                             then return (Finished Pass)
                             else return (Finished $ Fail
-                                        $ show output ++ " ≠ " ++ show expected)
+                                        $ "got " <> show output <> " expected " <> show expected)
             , name = nam
             , tags = []
             , options = []
@@ -89,7 +89,7 @@ tests = return
                 if (output == expected)
                     then return (Finished Pass)
                     else return (Finished $ TestSuite.Fail
-                                $ show output ++ " ≠ " ++ show expected)
+                                $ "got " <> show output <> " expected " <> show expected)
             , name = "streamEdit " ++ nam
             , tags = []
             , options = []
@@ -102,7 +102,7 @@ tests = return
                 if (output == expected)
                     then return (Finished Pass)
                     else return (Finished $ TestSuite.Fail
-                                $ show output ++ " ≠ " ++ show expected)
+                                $ "got " <> show output <> " expected " <> show expected)
             , name = "breakCap " ++ nam
             , tags = []
             , options = []

@@ -28,6 +28,12 @@
 -- or
 -- <https://www.gnu.org/software/gawk/manual/gawk.html awk>.
 --
+-- __Replace.Megaparsec__ can be used in the same sort of “string splitting”
+-- situations in which one would use Python
+-- <https://docs.python.org/3/library/re.html#re.split re.split>
+-- or Perl
+-- <https://perldoc.perl.org/functions/split.html split>.
+--
 -- See the __replace-megaparsec__ package README for usage examples.
 
 {-# LANGUAGE LambdaCase #-}
@@ -72,6 +78,14 @@ import Replace.Megaparsec.Internal.Text
 -- of the pattern parser @sep@ in a text stream.
 -- The 'sepCap' parser will always consume its entire input and can never fail.
 --
+-- @sepCap@ is similar to the @sep*@ family of parser combinators
+-- found in
+-- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html parser-combinators>
+-- and
+-- <http://hackage.haskell.org/package/parsers/docs/Text-Parser-Combinators.html parsers>,
+-- but it returns the parsed result of the @sep@ parser instead
+-- of throwing it away.
+--
 -- === Output
 --
 -- The input stream is separated and output into a list of sections:
@@ -107,15 +121,6 @@ import Replace.Megaparsec.Internal.Text
 -- because @sep@ fails on every token in a non-matching 'Left' section,
 -- so parser failures will not be reported.
 --
--- === Notes
---
--- @sepCap@ is similar to the @sep*@ family of parser combinators
--- found in
--- <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html parser-combinators>
--- and
--- <http://hackage.haskell.org/package/parsers/docs/Text-Parser-Combinators.html parsers>,
--- but it returns the parsed result of the @sep@ parser instead
--- of throwing it away.
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
@@ -209,6 +214,56 @@ findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 
 
 -- |
+-- == Specialized <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>
+--
+-- Parser combinator to consume input until the @sep@ pattern matches,
+-- equivalent to @manyTill_ anySingle sep@. On success, returns the prefix
+-- before the pattern match and the parsed match.
+--
+-- @sep@ may be a zero-consumption parser, in which case after 'anyTill'
+-- succeeds, then the parser input state will be at the beginning of the place
+-- where @sep@ matched.
+--
+-- This combinator will produce a parser which
+-- acts like 'Text.Megaparsec.takeWhileP' but is predicated beyond more than
+-- just the next one token.
+--
+-- == Special accelerated inputs
+--
+-- 'anyTill' is also like 'Text.Megaparsec.takeWhileP' in
+-- that it will be “fast” when applied to an input stream type @s@
+-- for which there are specialization re-write rules. There are specialization
+-- re-write rules for "Data.Text" and "Data.ByteString".
+anyTill
+    :: forall e s m a. (MonadParsec e s m)
+    => m a -- ^ The pattern matching parser @sep@
+    -> m (Tokens s, a) -- ^ (prefix, parse_result)
+anyTill sep = do
+    (as, end) <- manyTill_ anySingle sep
+    pure (tokensToChunk (Proxy::Proxy s) as, end)
+{-# INLINE [1] anyTill #-}
+
+#if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
+{-# RULES "anyTill/ByteString" [2]
+ forall e. forall.
+ anyTill           @e @B.ByteString =
+ anyTillByteString @e @B.ByteString #-}
+{-# RULES "anyTill/Text" [2]
+ forall e. forall.
+ anyTill     @e @T.Text =
+ anyTillText @e @T.Text #-}
+#elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
+{-# RULES "anyTill/ByteString" [2]
+ forall (pa :: ParsecT e B.ByteString m a).
+ anyTill           @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
+ anyTillByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa #-}
+{-# RULES "anyTill/Text" [2]
+ forall (pa :: ParsecT e T.Text m a).
+ anyTill     @e @T.Text @(ParsecT e T.Text m) @a pa =
+ anyTillText @e @T.Text @(ParsecT e T.Text m) @a pa #-}
+#endif
+
+-- |
 -- == Stream editor
 --
 -- Also known as “find-and-replace”, or “match-and-substitute”. Finds all
@@ -262,8 +317,9 @@ streamEdit
         -- ^ The @editor@ function. Takes a parsed result of @sep@
         -- and returns a new stream section for the replacement.
     -> s
-        -- ^ The input stream of text to be edited.
+        -- ^ The input stream of text to be edited
     -> s
+        -- ^ The edited input stream
 streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 {-# INLINABLE streamEdit #-}
 
@@ -288,8 +344,9 @@ streamEditT
         -- ^ The @editor@ function. Takes a parsed result of @sep@
         -- and returns a new stream section for the replacement.
     -> s
-        -- ^ The input stream of text to be edited.
+        -- ^ The input stream of text to be edited
     -> m s
+        -- ^ The edited input stream
 streamEditT sep editor input = do
     runParserT (sepCap sep) "" input >>= \case
         (Left _) -> undefined -- sepCap can never fail
@@ -312,8 +369,7 @@ streamEditT sep editor input = do
 -- could be /O(n²)/.
 --
 -- The pattern parser @sep@ may match a zero-width pattern (a pattern which
--- consumes no parser input on success). In that case the input will
--- equal @prefix <> suffix@.
+-- consumes no parser input on success).
 --
 -- === Output
 --
@@ -325,10 +381,12 @@ streamEditT sep editor input = do
 -- === Access the matched section of text
 --
 -- If you want to capture the matched string, then combine the pattern
--- parser @sep@ with 'Text.Megaparsec.match'. For all @input@, @sep@, if
+-- parser @sep@ with 'Text.Megaparsec.match'.
+--
+-- For all @input@, @sep@, if
 --
 -- @
--- let (prefix, (infix, _), suffix) = breakCap ('Text.Megaparsec.match' sep) input
+-- let (Just (prefix, (infix, _), suffix)) = breakCap ('Text.Megaparsec.match' sep) input
 -- @
 --
 -- then
@@ -361,7 +419,7 @@ breakCap
     => Parsec e s a
         -- ^ The pattern matching parser @sep@
     -> s
-        -- ^ The input stream of text.
+        -- ^ The input stream of text
     -> Maybe (s, a, s)
         -- ^ Maybe (prefix, parse_result, suffix)
 breakCap sep input =
@@ -374,52 +432,3 @@ breakCap sep input =
       suffix <- takeRest
       pure (prefix, cap, suffix)
 {-# INLINE breakCap #-}
-
--- |
--- == Specialized <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>
---
--- Parser combinator to consume input until the @sep@ pattern matches,
--- equivalent to @manyTill_ anySingle sep@.
---
--- @sep@ may be a zero-consumption parser, in which case after 'anyTill'
--- succeeds, then the parser input state will be at the beginning of the place
--- where @sep@ matched.
---
--- This combinator will produce a parser which
--- acts like 'Text.Megaparsec.takeWhileP' but is predicated beyond more than
--- just the next one token.
---
--- == Special accelerated inputs
---
--- 'anyTill' is also like 'Text.Megaparsec.takeWhileP' in
--- that it will be “fast” when applied to an input stream type @s@
--- for which there are specialization re-write rules. There are specialization
--- re-write rules for "Data.Text" and "Data.ByteString".
-anyTill
-    :: forall e s m a. (MonadParsec e s m)
-    => m a -- ^ The pattern matching parser @sep@
-    -> m (Tokens s, a)
-anyTill sep = do
-    (as, end) <- manyTill_ anySingle sep
-    pure (tokensToChunk (Proxy::Proxy s) as, end)
-{-# INLINE [1] anyTill #-}
-
-#if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
-{-# RULES "anyTill/ByteString" [2]
- forall e. forall.
- anyTill           @e @B.ByteString =
- anyTillByteString @e @B.ByteString #-}
-{-# RULES "anyTill/Text" [2]
- forall e. forall.
- anyTill     @e @T.Text =
- anyTillText @e @T.Text #-}
-#elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
-{-# RULES "anyTill/ByteString" [2]
- forall (pa :: ParsecT e B.ByteString m a).
- anyTill           @e @B.ByteString @(ParsecT e B.ByteString m) @a pa =
- anyTillByteString @e @B.ByteString @(ParsecT e B.ByteString m) @a pa #-}
-{-# RULES "anyTill/Text" [2]
- forall (pa :: ParsecT e T.Text m a).
- anyTill     @e @T.Text @(ParsecT e T.Text m) @a pa =
- anyTillText @e @T.Text @(ParsecT e T.Text m) @a pa #-}
-#endif
