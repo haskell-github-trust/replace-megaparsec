@@ -8,17 +8,22 @@
 # Note that the replace-megaparsec built in the docker image will be the one
 # from the IHaskell Stackage resolver, not from the local file tree.
 
-FROM crosscompass/ihaskell-notebook:ebff081e2cef
-
-USER $NB_UID
-
-RUN stack build replace-megaparsec
+FROM crosscompass/ihaskell-notebook:fb96a81230df
 
 USER root
 
 COPY notebook/ReplaceMegaparsecUsage.ipynb /home/$NB_USER/work/
-RUN chown $NB_UID:users /home/$NB_USER/work/ReplaceMegaparsecUsage.ipynb
+COPY notebook/stack.yaml /home/$NB_USER/work/
+RUN cat /opt/stack/global-project/stack.yaml /home/$NB_USER/work/stack.yaml >> /home/$NB_USER/work/stack.yaml.cat && mv /home/$NB_USER/work/stack.yaml.cat /home/$NB_USER/work/stack.yaml
+RUN fix-permissions /home/$NB_USER/work
+
+COPY src /home/$NB_USER/replace-megaparsec/src
+COPY replace-megaparsec.cabal /home/$NB_USER/replace-megaparsec/
+COPY LICENSE /home/$NB_USER/replace-megaparsec/
+RUN fix-permissions /home/$NB_USER/replace-megaparsec
 
 USER $NB_UID
+
+RUN cd /home/$NB_USER/work && stack build replace-megaparsec
 
 ENV JUPYTER_ENABLE_LAB=yes

@@ -150,7 +150,7 @@ let parens :: Parsec Void String ()
             (char ')')
         pure ()
 
-splitCap parens "(()) (()())"
+either id fst <$> splitCap (match parens) "(()) (()())"
 ```
 ```haskell
 [Right "(())",Left " ",Right "(()())"]
