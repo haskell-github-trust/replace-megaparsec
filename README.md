@@ -36,6 +36,12 @@ or Unix
 or
 [`awk`](https://www.gnu.org/software/gawk/manual/gawk.html).
 
+__replace-megaparsec__ can be used in the same sort of “string splitting”
+situations in which one would use Python
+[`re.split`](https://docs.python.org/3/library/re.html#re.split)
+or Perl
+[`split`](https://perldoc.perl.org/functions/split.html).
+
 See [__replace-attoparsec__](https://hackage.haskell.org/package/replace-attoparsec)
 for the
 [__attoparsec__](http://hackage.haskell.org/package/attoparsec)
@@ -100,66 +106,34 @@ import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer
 ```
 
-## Parsing with `sepCap` family of parser combinators
+## Split strings with `splitCap`
 
-The following examples show how to match a pattern to a string of text
-and separate it into sections
-which match the pattern, and sections which don't match.
-
-### Pattern match, capture only the parsed result with `sepCap`
+### Find all pattern matches, capture the matched text and the parsed result
 
 Separate the input string into sections which can be parsed as a hexadecimal
 number with a prefix `"0x"`, and sections which can't. Parse the numbers.
 
 ```haskell
 let hexparser = chunk "0x" *> hexadecimal :: Parsec Void String Integer
-parseTest (sepCap hexparser) "0xA 000 0xFFFF"
+splitCap (match hexparser) "0xA 000 0xFFFF"
 ```
 ```haskell
-[Right 10,Left " 000 ",Right 65535]
+[Right ("0xA",10), Left " 000 ", Right ("0xFFFF",65535)]
 ```
 
-### Pattern match, capture only the matched text with `findAll`
+### Find all pattern matches, capture only the locations of the matched patterns
 
-Just get the strings sections which match the hexadecimal parser, throw away
-the parsed number.
-
-```haskell
-let hexparser = chunk "0x" *> hexadecimal :: Parsec Void String Integer
-parseTest (findAll hexparser) "0xA 000 0xFFFF"
-```
-```haskell
-[Right "0xA",Left " 000 ",Right "0xFFFF"]
-```
-
-### Pattern match, capture the matched text and the parsed result with `findAllCap`
-
-Capture the parsed hexadecimal number, as well as the string section which
-parses as a hexadecimal number.
-
-```haskell
-let hexparser = chunk "0x" *> hexadecimal :: Parsec Void String Integer
-parseTest (findAllCap hexparser) "0xA 000 0xFFFF"
-```
-```haskell
-[Right ("0xA",10),Left " 000 ",Right ("0xFFFF",65535)]
-```
-
-### Pattern match, capture only the locations of the matched patterns
-
-Find all of the sections of the stream which match
-a string of spaces.
-Print a list of the offsets of the beginning of every pattern match.
+Find all of the sections of the stream which are letters. Capture a list of
+the offsets of the beginning of every pattern match.
 
 ```haskell
 import Data.Either
-let spaceoffset = getOffset <* space1 :: Parsec Void String Int
-parseTest (pure . rights =<< sepCap spaceoffset) " a  b  "
+let letterOffset = getOffset <* some letterChar :: Parsec Void String Int
+rights $ splitCap letterOffset " a  bc "
 ```
 ```haskell
-[0,2,5]
+[1,4]
 ```
-
 ### Pattern match balanced parentheses
 
 Find groups of balanced nested parentheses. This is an example of a
@@ -176,13 +150,13 @@ let parens :: Parsec Void String ()
             (char ')')
         pure ()
 
-parseTest (findAll parens) "(()) (()())"
+splitCap parens "(()) (()())"
 ```
 ```haskell
 [Right "(())",Left " ",Right "(()())"]
 ```
 
-## Edit text strings by running parsers with `streamEdit`
+## Edit strings with `streamEdit`
 
 The following examples show how to search for a pattern in a string of text
 and then edit the string of text to substitute in some replacement text
@@ -190,7 +164,7 @@ for the matched patterns.
 
 ### Pattern match and replace with a constant
 
-Replace all carriage-return-newline instances with newline.
+Replace all carriage-return-newline occurances with newline.
 
 ```haskell
 let crnl = chunk "\r\n" :: Parsec Void String String
