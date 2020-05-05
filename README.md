@@ -141,7 +141,8 @@ Find groups of balanced nested parentheses. This is an example of a
 expression. We can express the pattern with a recursive parser.
 
 ```haskell
-import Data.Functor
+import Data.Functor (void)
+import Data.Bifunctor (second)
 let parens :: Parsec Void String ()
     parens = do
         char '('
@@ -150,7 +151,7 @@ let parens :: Parsec Void String ()
             (char ')')
         pure ()
 
-either id fst <$> splitCap (match parens) "(()) (()())"
+second fst <$> splitCap (match parens) "(()) (()())"
 ```
 ```haskell
 [Right "(())",Left " ",Right "(()())"]
@@ -202,13 +203,13 @@ streamEdit (match hexparser) (\(s,r) -> if r<=16 then show r else s) "0xA 000 0x
 "10 000 0xFFFF"
 ```
 
-### Pattern match and edit the matches with IO
+### Pattern match and edit the matches with IO with [`streamEditT`](https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEditT)
 
 Find an environment variable in curly braces and replace it with its
 value from the environment.
 
 ```haskell
-import System.Environment
+import System.Environment (getEnv)
 let bracevar = char '{' *> manyTill anySingle (char '}') :: ParsecT Void String IO String
 streamEditT bracevar getEnv "- {HOME} -"
 ```
@@ -216,9 +217,9 @@ streamEditT bracevar getEnv "- {HOME} -"
 "- /home/jbrock -"
 ```
 
-### Context-sensitive pattern match and edit the matches
+### Context-sensitive pattern match and edit the matches with [`streamEditT`](https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEditT)
 
-Capitalize the third letter in a string. The `capthird` parser searches for
+Capitalize the third letter in a string. The `capThird` parser searches for
 individual letters, and it needs to remember how many times it has run so
 that it can match successfully only on the third time that it finds a letter.
 To enable the parser to remember how many times it has run, we'll
@@ -231,18 +232,50 @@ import qualified Control.Monad.State.Strict as MTL
 import Control.Monad.State.Strict (get, put, evalState)
 import Data.Char (toUpper)
 
-let capthird :: ParsecT Void String (MTL.State Int) String
-    capthird = do
+let capThird :: ParsecT Void String (MTL.State Int) String
+    capThird = do
         x <- letterChar
         i <- get
-        put (i+1)
-        if i==3 then return [x] else empty
+        let i' = i+1
+        put i'
+        if i'==3 then return [x] else empty
 
-flip evalState 1 $ streamEditT capthird (return . fmap toUpper) "a a a a a"
+flip evalState 0 $ streamEditT capThird (pure . fmap toUpper) "a a a a a"
 ```
 ```haskell
 "a a A a a"
 ```
+
+### Pattern match, edit the matches, and count the edits with [`streamEditT`](https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEditT)
+
+Find and capitalize no more than three letters in a string, and return the 
+edited string along with the number of letters capitalized. To enable the
+editor function to remember how many letters it has capitalized, we'll 
+run `streamEditT` in the `State` monad from the `mtl` package. Use this
+technique to get the same functionality as Python
+[`re.subn`](https://docs.python.org/3/library/re.html#re.subn).
+
+```haskell
+import qualified Control.Monad.State.Strict as MTL
+import Control.Monad.State.Strict (get, put, runState)
+import Data.Char (toUpper)
+
+let editThree :: Char -> MTL.State Int String
+    editThree x = do
+        i <- get
+        let i' = i+1
+        if i'<=3
+            then do
+                put i'
+                pure [toUpper x]
+            else pure [x]
+
+flip runState 0 $ streamEditT letterChar editThree "a a a a a"
+```
+```haskell
+("A A A a a",3)
+```
+
 
 # In the Shell
 

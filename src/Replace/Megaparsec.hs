@@ -44,15 +44,19 @@
 -- == Type constraints
 --
 -- All functions in the __Running Parser__ section require the type of the
--- stream of text that is input to be @Stream s@ such that @Tokens s ~ s@,
+-- stream of text that is input to be
+-- @'Text.Megaparsec.Stream.Stream' s@
+-- such that
+-- @'Text.Megaparsec.Stream.Tokens' s ~ s@,
 -- because we want to output the same type of stream that was input.
 -- That requirement is satisfied for all the 'Text.Megaparsec.Stream' instances
 -- included with "Text.Megaparsec":
--- "Data.Text",
--- "Data.Text.Lazy",
--- "Data.ByteString",
--- "Data.ByteString.Lazy",
--- and "Data.String".
+--
+-- * "Data.String"
+-- * "Data.Text"
+-- * "Data.Text.Lazy"
+-- * "Data.ByteString"
+-- * "Data.ByteString.Lazy"
 --
 -- Megaparsec parsers have an error type parameter @e@. When writing parsers
 -- to be used by this module, the error type parameter @e@ should usually
@@ -72,12 +76,19 @@
 module Replace.Megaparsec
   (
     -- * Running parser
+    --
+    -- | Functions in this section are ways to run parsers. They take
+    -- as arguments a @sep@ parser and some input, run the parser on the input,
+    -- and return a result.
     breakCap
   , splitCap
   , streamEdit
   , streamEditT
     -- * Parser combinator
     --
+    -- | Functions in this section are parser combinators. They take
+    -- a @sep@ parser for an argument, combine @sep@ with another parser,
+    -- and return a new parser.
   , anyTill
   , sepCap
   , findAll
@@ -98,7 +109,7 @@ import Replace.Megaparsec.Internal.Text
 
 
 -- |
--- == Break on and capture one pattern
+-- === Break on and capture one pattern
 --
 -- Find the first occurence of a pattern in a text stream, capture the found
 -- pattern, and break the input text stream on the found pattern.
@@ -114,18 +125,19 @@ import Replace.Megaparsec.Internal.Text
 -- The pattern parser @sep@ may match a zero-width pattern (a pattern which
 -- consumes no parser input on success).
 --
--- === Output
+-- ==== Output
 --
 --  * @Nothing@ when no pattern match was found.
 --  * @Just (prefix, parse_result, suffix)@ for the result of parsing the
 --    pattern match, and the @prefix@ string before and the @suffix@ string
 --    after the pattern match. @prefix@ and @suffix@ may be zero-length strings.
 --
--- === Access the matched section of text
+-- ==== Access the matched section of text
 --
 -- If you want to capture the matched string, then combine the pattern
 -- parser @sep@ with 'Text.Megaparsec.match'.
 --
+-- With the matched string, we can reconstruct in input string.
 -- For all @input@, @sep@, if
 --
 -- @
@@ -157,17 +169,19 @@ breakCap sep input =
 {-# INLINE breakCap #-}
 
 -- |
--- == Split on and capture all patterns
+-- === Split on and capture all patterns
 --
--- Split an input string on every non-overlapping occurence of the
--- pattern @sep@. 'splitCap' can also be used to “find all” occurences of a
--- pattern while retaining the surrounding context of non-matching input
--- sections.
+-- Find all occurences of the pattern @sep@, split the input string, capture
+-- all the patterns and the splits.
 --
--- 'splitCap' is a convenience wrapper for 'sepCap', so all of the 'sepCap'
--- documentation applies.
+-- The input string will be split on every leftmost non-overlapping occurence
+-- of the pattern @sep@. The output list will contain
+-- the parsed result of input string sections which match the @sep@ pattern
+-- in 'Right', and non-matching sections in 'Left'.
 --
--- === Access the matched section of text
+-- 'splitCap' depends on 'sepCap', see 'sepCap' for more details.
+--
+-- ==== Access the matched section of text
 --
 -- If you want to capture the matched strings, then combine the pattern
 -- parser @sep@ with 'Text.Megaparsec.match'.
@@ -182,7 +196,7 @@ breakCap sep input =
 -- then
 --
 -- @
--- input == 'Data.Monoid.mconcat' ('Data.Either.either' 'Data.Function.id' 'Data.Tuple.fst' '<$>' output)
+-- input == 'Data.Monoid.mconcat' ('Data.Bifunctor.second' 'Data.Tuple.fst' '<$>' output)
 -- @
 splitCap
     :: forall e s a. (Ord e, Stream s, Tokens s ~ s)
@@ -199,13 +213,13 @@ splitCap sep input = do
 {-# INLINABLE splitCap #-}
 
 -- |
--- == Stream editor
+-- === Stream editor
 --
 -- Also known as “find-and-replace”, or “match-and-substitute”. Finds all
 -- non-overlapping sections of the stream which match the pattern @sep@,
 -- and replaces them with the result of the @editor@ function.
 --
--- === Access the matched section of text in the @editor@
+-- ==== Access the matched section of text in the @editor@
 --
 -- If you want access to the matched string in the @editor@ function,
 -- then combine the pattern parser @sep@ with 'Text.Megaparsec.match'.
@@ -237,7 +251,7 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 {-# INLINABLE streamEdit #-}
 
 -- |
--- == Stream editor transformer
+-- === Stream editor transformer
 --
 -- Monad transformer version of 'streamEdit'.
 --
@@ -267,7 +281,7 @@ streamEditT sep editor input = do
 {-# INLINABLE streamEditT #-}
 
 -- |
--- == Specialized <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>
+-- === Specialized <http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_>
 --
 -- Parser combinator to consume input until the @sep@ pattern matches,
 -- equivalent to
@@ -285,7 +299,7 @@ streamEditT sep editor input = do
 anyTill
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
-    -> m (Tokens s, a) -- ^ (prefix, parse_result)
+    -> m (Tokens s, a) -- ^ parser
 anyTill sep = do
     (as, end) <- manyTill_ anySingle sep
     pure (tokensToChunk (Proxy::Proxy s) as, end)
@@ -311,9 +325,9 @@ anyTill sep = do
 #endif
 
 -- |
--- == Separate and capture
+-- === Separate and capture
 --
--- Parser combinator to find all of the non-overlapping ocurrences
+-- Parser combinator to find all of the leftmost non-overlapping occurrences
 -- of the pattern parser @sep@ in a text stream.
 -- The 'sepCap' parser will always consume its entire input and can never fail.
 --
@@ -325,7 +339,7 @@ anyTill sep = do
 -- but it returns the parsed result of the @sep@ parser instead
 -- of throwing it away.
 --
--- === Output
+-- ==== Output
 --
 -- The input stream is separated and output into a list of sections:
 --
@@ -340,7 +354,7 @@ anyTill sep = do
 --   the entire input stream will be returned as one non-matching 'Left' section.
 -- * The output list will not contain two consecutive 'Left' sections.
 --
--- === Zero-width matches forbidden
+-- ==== Zero-width matches forbidden
 --
 -- If the pattern matching parser @sep@ would succeed without consuming any
 -- input then 'sepCap' will force it to fail.
@@ -351,10 +365,10 @@ anyTill sep = do
 sepCap
     :: forall e s m a. (MonadParsec e s m)
     => m a -- ^ The pattern matching parser @sep@
-    -> m [Either (Tokens s) a]
+    -> m [Either (Tokens s) a] -- ^ parser
 sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
              $ fmap sequenceLeft
-             $ many $ fmap Right (try $ consumeSome sep) <|> fmap Left anySingle
+             $ many $ fmap Right (try nonZeroSep) <|> fmap Left anySingle
   where
     sequenceLeft :: [Either l r] -> [Either [l] r]
     sequenceLeft = {-# SCC sequenceLeft #-} foldr consLeft []
@@ -365,9 +379,9 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
         consLeft (Right r) xs = {-# SCC consLeft #-} (Right r):xs
     -- If sep succeeds and consumes 0 input tokens, we must force it to fail,
     -- otherwise infinite loop
-    consumeSome p = {-# SCC consumeSome #-} do
+    nonZeroSep = {-# SCC nonZeroSep #-} do
         offset1 <- getOffset
-        x <- {-# SCC sep #-} p
+        x <- {-# SCC sep #-} sep
         offset2 <- getOffset
         when (offset1 >= offset2) empty
         return x
@@ -397,7 +411,7 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
 
 
 -- |
--- == Find all occurences, parse and capture pattern matches
+-- === Find all occurences, parse and capture pattern matches
 --
 -- Parser combinator for finding all occurences of a pattern in a stream.
 --
@@ -413,13 +427,13 @@ sepCap sep = (fmap.fmap) (first $ tokensToChunk (Proxy::Proxy s))
 findAllCap
     :: MonadParsec e s m
     => m a -- ^ The pattern matching parser @sep@
-    -> m [Either (Tokens s) (Tokens s, a)]
+    -> m [Either (Tokens s) (Tokens s, a)] -- ^ parser
 findAllCap sep = sepCap (match sep)
 {-# INLINABLE findAllCap #-}
 
 
 -- |
--- == Find all occurences
+-- === Find all occurences
 --
 -- Parser combinator for finding all occurences of a pattern in a stream.
 --
@@ -435,6 +449,6 @@ findAllCap sep = sepCap (match sep)
 findAll
     :: MonadParsec e s m
     => m a -- ^ The pattern matching parser @sep@
-    -> m [Either (Tokens s) (Tokens s)]
+    -> m [Either (Tokens s) (Tokens s)] -- ^ parser
 findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 {-# INLINABLE findAll #-}
