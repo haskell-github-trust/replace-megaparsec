@@ -6,9 +6,11 @@
 --
 -- This internal module is for 'Data.Text.Text' specializations.
 --
--- The functions in this module are supposed to be chosen automatically
+-- The functions in this module are intended to be chosen automatically
 -- by rewrite rules in the "Replace.Megaparsec" module, so you should never
 -- need to import this module.
+--
+-- Names in this module may change without a major version increment.
 
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
