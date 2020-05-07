@@ -164,7 +164,7 @@ breakCap sep input =
   where
     pser = do
       (prefix, cap) <- anyTill sep
-      suffix <- takeRest
+      suffix <- getInput
       pure (prefix, cap, suffix)
 {-# INLINABLE breakCap #-}
 

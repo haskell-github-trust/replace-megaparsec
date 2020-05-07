@@ -1,5 +1,9 @@
 # Revision history for replace-megaparsec
 
+## 1.4.1.0 -- 2020-05-07
+
+anyTill use getInput instead of takeRest
+
 ## 1.4.0.0 -- 2020-05-06
 
 __Running Parsers__: Add `splitCap` and `breakCap`.
