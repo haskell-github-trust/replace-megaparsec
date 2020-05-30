@@ -1,5 +1,5 @@
 name:                replace-megaparsec
-version:             1.4.1.0
+version:             1.4.2.0
 cabal-version:       1.18
 synopsis:            Find, replace, and split string patterns with Megaparsec parsers (instead of regex)
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
@@ -28,6 +28,7 @@ library
                      , megaparsec
                      , bytestring
                      , text
+                     , parser-combinators >= 1.2.0
   default-language:    Haskell2010
   exposed-modules:     Replace.Megaparsec
                      , Replace.Megaparsec.Internal.ByteString
