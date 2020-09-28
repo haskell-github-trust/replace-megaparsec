@@ -50,7 +50,7 @@ sepCapText sep = getInput >>= go
                 -- the Maybe then the benchmarks get dramatically worse.
                 thisiter <- (<|>)
                     ( do
-                        x <- sep
+                        x <- try sep
                         restAfter@(Text _ _ afterLen) <- getInput
                         -- Don't allow a match of a zero-width pattern
                         when (afterLen >= thisLen) empty
@@ -87,7 +87,7 @@ anyTillText sep = do
   where
     go = do
       (Text _ _ thisLen) <- getInput
-      r <- optional sep
+      r <- optional $ try sep
       case r of
         Nothing -> anySingle >> go
         Just x -> pure (thisLen, x)

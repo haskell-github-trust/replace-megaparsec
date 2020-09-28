@@ -68,6 +68,10 @@ tests = return
     , Test $ breakCapTest "zero-width" (lookAhead (upperChar :: Parser Char)) "aAa" (Just ("a", 'A', "Aa"))
     , Test $ breakCapTest "empty input" (upperChar :: Parser Char) "" Nothing
     , Test $ breakCapTest "empty input zero-width" (return () :: Parser ()) "" (Just ("", (), ""))
+    -- I was unable to write a failing test for
+    -- https://github.com/jamesdbrock/replace-megaparsec/issues/33
+    -- but adding this "sep backtrack" test anyway
+    , Test $ splitCapTest "sep backtrack" (match $ between (string "{{") (string "}}") (T.pack <$> many (alphaNumChar <|> spaceChar) :: Parser T.Text)) "{{foo.}}" [Left "{{foo.}}"]
     ]
   where
     runParserTest nam p input expected = TestInstance
@@ -106,6 +110,19 @@ tests = return
                     else return (Finished $ TestSuite.Fail
                                 $ "got " <> show output <> " expected " <> show expected)
             , name = "breakCap " ++ nam
+            , tags = []
+            , options = []
+            , setOption = \_ _ -> Left "no options supported"
+            }
+
+    splitCapTest nam sep input expected = TestInstance
+            { run = do
+                let output = splitCap sep input
+                if (output == expected)
+                    then return (Finished Pass)
+                    else return (Finished $ TestSuite.Fail
+                                $ "got " <> show output <> " expected " <> show expected)
+            , name = "splitCap " ++ nam
             , tags = []
             , options = []
             , setOption = \_ _ -> Left "no options supported"
