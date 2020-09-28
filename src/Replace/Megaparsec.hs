@@ -199,7 +199,7 @@ breakCap sep input =
 -- input == 'Data.Monoid.mconcat' ('Data.Bifunctor.second' 'Data.Tuple.fst' '<$>' output)
 -- @
 splitCap
-    :: forall e s a. (Ord e, Stream s, Tokens s ~ s)
+    :: forall e s a. (Ord e, Show e, Show (Token s), Stream s, Tokens s ~ s)
     => Parsec e s a
         -- ^ The pattern matching parser @sep@
     -> s
@@ -208,7 +208,7 @@ splitCap
         -- ^ List of matching and non-matching input sections.
 splitCap sep input = do
     case runParser (sepCap sep) "" input of
-        (Left _) -> undefined -- sepCap can never fail
+        (Left (ParseErrorBundle errs _)) -> error (show errs) -- undefined -- sepCap can never fail
         (Right r) -> r
 {-# INLINABLE splitCap #-}
 

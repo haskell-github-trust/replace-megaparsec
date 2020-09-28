@@ -49,7 +49,7 @@ sepCapByteString sep = getInput >>= go
                 -- the Maybe then the benchmarks get dramatically worse.
                 thisiter <- (<|>)
                     ( do
-                        x <- sep
+                        x <- try sep
                         restAfter <- getInput
                         -- Don't allow a match of a zero-width pattern
                         when (B.length restAfter >= B.length restThis) empty
@@ -86,7 +86,7 @@ anyTillByteString sep = do
   where
     go = do
       end <- getInput
-      r <- optional sep
+      r <- optional $ try sep
       case r of
         Nothing -> anySingle >> go
         Just x -> pure (end, x)
