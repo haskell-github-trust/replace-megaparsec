@@ -1,5 +1,11 @@
 # Revision history for replace-megaparsec
 
+## 1.4.3.0 -- 2020-09-28
+
+Bugfix sepCap backtracking when sep fails
+
+See [#33](https://github.com/jamesdbrock/replace-megaparsec/issues/33)
+
 ## 1.4.1.0 -- 2020-05-07
 
 anyTill use getInput instead of takeRest

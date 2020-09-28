@@ -1,5 +1,5 @@
 name:                replace-megaparsec
-version:             1.4.2.0
+version:             1.4.3.0
 cabal-version:       1.18
 synopsis:            Find, replace, and split string patterns with Megaparsec parsers (instead of regex)
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
