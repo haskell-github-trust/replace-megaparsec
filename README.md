@@ -263,10 +263,9 @@ import Data.Char (toUpper)
 let editThree :: Char -> MTL.State Int String
     editThree x = do
         i <- get
-        let i' = i+1
-        if i'<=3
+        if i<3
             then do
-                put i'
+                put $ i+1
                 pure [toUpper x]
             else pure [x]
 
@@ -288,7 +287,7 @@ script will find decimal numbers in a stream and replace them with their double.
 #!/usr/bin/env stack
 {- stack
   script
-  --resolver lts-15
+  --resolver lts-16
   --package megaparsec
   --package replace-megaparsec
 -}
