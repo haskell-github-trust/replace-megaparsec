@@ -36,12 +36,9 @@
 --
 -- See the __replace-megaparsec__ package README for usage examples.
 --
--- == Special accelerated inputs
---
--- There are specialization re-write rules to speed up all functions in this
--- module when the input stream type @s@ is "Data.Text" or "Data.ByteString".
---
 -- == Type constraints
+--
+-- === output stream type @Tokens s@ = input stream type @s@
 --
 -- All functions in the __Running Parser__ section require the type of the
 -- stream of text that is input to be
@@ -58,11 +55,31 @@
 -- * "Data.ByteString"
 -- * "Data.ByteString.Lazy"
 --
--- Megaparsec parsers have an error type parameter @e@. When writing parsers
--- to be used by this module, the error type parameter @e@ should usually
+-- === Custom error type @e@ should be 'Data.Void'
+--
+-- Megaparsec parsers have a custom error data component @e@. When writing parsers
+-- to be used by this module, the custom error type @e@ should usually
 -- be 'Data.Void', because every function in this module expects a parser
 -- failure to occur on every token in a non-matching section of the input
--- stream, so parser failure error descriptions are not returned.
+-- stream, so parser failure error descriptions are not returned, and you'll
+-- never see the custom error information.
+--
+-- == Special fast input types
+--
+-- Functions in this module will be “fast” when the input stream
+-- type @s@ is:
+--
+-- * "Data.Text"
+-- * "Data.ByteString"
+--
+-- We mean “fast” in the same sense as 'Text.Megaparsec.MonadParsec':
+-- when returning subsections of the input stream,
+-- we return slices of the input stream data, rather than constructing a list
+-- of tokens and then building a new stream subsection from that list.
+-- This relies on implementation details of the stream representation,
+-- so there are specialization re-write rules in this module to make
+-- that possible without adding new typeclasses.
+
 
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
@@ -77,16 +94,19 @@ module Replace.Megaparsec
   (
     -- * Running parser
     --
-    -- | Functions in this section are ways to run parsers. They take
+    -- | Functions in this section are /ways to run parsers/
+    -- (like 'Text.Megaparsec.runParser'). They take
     -- as arguments a @sep@ parser and some input, run the parser on the input,
     -- and return a result.
     breakCap
+  , breakCapT
   , splitCap
+  , splitCapT
   , streamEdit
   , streamEditT
     -- * Parser combinator
     --
-    -- | Functions in this section are parser combinators. They take
+    -- | Functions in this section are /parser combinators/. They take
     -- a @sep@ parser for an argument, combine @sep@ with another parser,
     -- and return a new parser.
   , anyTill
@@ -157,16 +177,36 @@ breakCap
         -- ^ The input stream of text
     -> Maybe (s, a, s)
         -- ^ Maybe (prefix, parse_result, suffix)
-breakCap sep input =
-    case runParser pser "" input of
-        (Left _) -> Nothing
-        (Right x) -> Just x
+breakCap sep input = runIdentity $ breakCapT sep input
+{-# INLINABLE breakCap #-}
+
+-- |
+-- === Break on and capture one pattern
+--
+-- Monad transformer version of 'breakCap'.
+--
+-- The parser @sep@ will run in the underlying monad context.
+breakCapT
+    :: forall m e s a. (Ord e, Stream s, Tokens s ~ s, Monad m)
+    => ParsecT e s m a
+        -- ^ The pattern matching parser @sep@
+    -> s
+        -- ^ The input stream of text
+    -> m (Maybe (s, a, s))
+        -- ^ Maybe (prefix, parse_result, suffix)
+breakCapT sep input =
+    runParserT pser "" input >>= \case
+        (Left _) -> pure Nothing
+        (Right x) -> pure $ Just x
   where
     pser = do
       (prefix, cap) <- anyTill sep
       suffix <- getInput
       pure (prefix, cap, suffix)
-{-# INLINABLE breakCap #-}
+{-# INLINABLE breakCapT #-}
+
+
+
 
 -- |
 -- === Split on and capture all patterns
@@ -206,11 +246,30 @@ splitCap
         -- ^ The input stream of text
     -> [Either s a]
         -- ^ List of matching and non-matching input sections.
-splitCap sep input = do
-    case runParser (sepCap sep) "" input of
-        (Left _) -> undefined -- sepCap can never fail
-        (Right r) -> r
+splitCap sep input = runIdentity $ splitCapT sep input
 {-# INLINABLE splitCap #-}
+
+
+-- |
+-- === Split on and capture all patterns
+--
+-- Monad transformer version of 'splitCap'.
+--
+-- The parser @sep@ will run in the underlying monad context.
+splitCapT
+    :: forall e s m a. (Ord e, Stream s, Tokens s ~ s, Monad m)
+    => ParsecT e s m a
+        -- ^ The pattern matching parser @sep@
+    -> s
+        -- ^ The input stream of text
+    -> m [Either s a]
+        -- ^ List of matching and non-matching input sections.
+splitCapT sep input =
+    runParserT (sepCap sep) "" input >>= \case
+        (Left _) -> undefined -- sepCap can never fail
+        (Right r) -> pure r
+{-# INLINABLE splitCapT #-}
+
 
 -- |
 -- === Stream editor
@@ -251,11 +310,11 @@ streamEdit sep editor = runIdentity . streamEditT sep (Identity . editor)
 {-# INLINABLE streamEdit #-}
 
 -- |
--- === Stream editor transformer
+-- === Stream editor
 --
 -- Monad transformer version of 'streamEdit'.
 --
--- Both the parser @sep@ and the @editor@ function run in the underlying
+-- Both the parser @sep@ and the @editor@ function will run in the underlying
 -- monad context.
 --
 -- If you want to do 'IO' operations in the @editor@ function or the
@@ -277,7 +336,7 @@ streamEditT
 streamEditT sep editor input = do
     runParserT (sepCap sep) "" input >>= \case
         (Left _) -> undefined -- sepCap can never fail
-        (Right r) -> fmap mconcat $ traverse (either return editor) r
+        (Right r) -> mconcat <$> traverse (either return editor) r
 {-# INLINABLE streamEditT #-}
 
 -- |

@@ -1,5 +1,9 @@
 # Revision history for replace-megaparsec
 
+## 1.4.4.0 -- 2020-12-04
+
+Add `splitCapT` and `breakCapT`.
+
 ## 1.4.3.0 -- 2020-09-28
 
 Bugfix sepCap backtracking when sep fails
