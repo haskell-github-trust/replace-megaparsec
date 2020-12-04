@@ -1,12 +1,13 @@
 # Dockerfile for usage examples hosted on mybinder.org
+# from https://hub.docker.com/r/crosscompass/ihaskell-notebook
 #
 # Test this Dockerfile:
 #
 #     docker build -t replace-megaparsec .
-#     docker run --rm -p 8888:8888 -v $PWD:/home/jovyan/pwd --name replace-megaparsec --env JUPYTER_TOKEN=x replace-megaparsec:latest
+#     docker run --rm -p 8888:8888 -v $PWD:/home/jovyan/pwd --name replace-megaparsec replace-megaparsec:latest jupyter lab --LabApp.token=''
 #
 
-FROM crosscompass/ihaskell-notebook:fb96a81230df
+FROM crosscompass/ihaskell-notebook:62631e7176e8
 
 USER root
 
