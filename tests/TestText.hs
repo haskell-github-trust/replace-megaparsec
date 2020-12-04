@@ -12,13 +12,20 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 import Data.Void
 import qualified Data.Text as T
+import Data.Bifunctor (second)
 
 type Parser = Parsec Void T.Text
+
+findAllCap' :: MonadParsec e s m => m a -> m [Either (Tokens s) (Tokens s, a)]
+findAllCap' sep = sepCap (match sep)
+
+findAll' :: MonadParsec e s f => f b -> f [Either (Tokens s) (Tokens s)]
+findAll' sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 
 tests :: IO [Test]
 tests = return
     [ Test $ runParserTest "findAll upperChar"
-        (findAllCap (upperChar :: Parser Char))
+        (findAllCap' (upperChar :: Parser Char))
         ("aBcD" :: T.Text)
         [Left "a", Right ("B", 'B'), Left "c", Right ("D", 'D')]
     -- check that sepCap can progress even when parser consumes nothing
@@ -46,7 +53,7 @@ tests = return
         ([Left "a"])
 #endif
     , Test $ runParserTest "findAll astral"
-        (findAll ((takeWhileP Nothing (=='𝅘𝅥𝅯') :: Parser T.Text)))
+        (findAll' ((takeWhileP Nothing (=='𝅘𝅥𝅯') :: Parser T.Text)))
         ("𝄞𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥" :: T.Text)
         [Left "𝄞𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥", Right "𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯𝅘𝅥𝅯", Left "𝅘𝅥𝅘𝅥𝅘𝅥𝅘𝅥"]
     , Test $ runParserTest "empty input" (sepCap (fail "" :: Parser ())) "" []

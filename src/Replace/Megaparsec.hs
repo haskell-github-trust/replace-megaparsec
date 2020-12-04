@@ -489,6 +489,7 @@ findAllCap
     -> m [Either (Tokens s) (Tokens s, a)] -- ^ parser
 findAllCap sep = sepCap (match sep)
 {-# INLINABLE findAllCap #-}
+{-# DEPRECATED findAllCap "replace with `findAllCap sep = sepCap (match sep)`" #-}
 
 
 -- |
@@ -511,3 +512,4 @@ findAll
     -> m [Either (Tokens s) (Tokens s)] -- ^ parser
 findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)
 {-# INLINABLE findAll #-}
+{-# DEPRECATED findAll "replace with `findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)`" #-}

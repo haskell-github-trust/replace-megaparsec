@@ -17,10 +17,13 @@ import GHC.Word
 
 type Parser = Parsec Void B.ByteString
 
+findAllCap' :: MonadParsec e s m => m a -> m [Either (Tokens s) (Tokens s, a)]
+findAllCap' sep = sepCap (match sep)
+
 tests :: IO [Test]
 tests = return
     [ Test $ runParserTest "findAll upperChar"
-        (findAllCap (upperChar :: Parser Word8))
+        (findAllCap' (upperChar :: Parser Word8))
         ("aBcD" :: B.ByteString)
         [Left "a", Right ("B", c2w 'B'), Left "c", Right ("D", c2w 'D')]
     -- check that sepCap can progress even when parser consumes nothing
