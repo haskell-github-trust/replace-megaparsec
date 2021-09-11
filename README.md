@@ -246,6 +246,7 @@ flip evalState 0 $ streamEditT capThird (pure . fmap toUpper) "a a a a a"
 "a a A a a"
 ```
 
+
 ### Pattern match, edit the matches, and count the edits with [`streamEditT`](https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEditT)
 
 Find and capitalize no more than three letters in a string, and return the 
@@ -273,6 +274,44 @@ flip runState 0 $ streamEditT letterChar editThree "a a a a a"
 ```
 ```haskell
 ("A A A a a",3)
+```
+
+
+### Non-greedy repetition
+
+This is not a feature of this library, but it’s
+a useful technique to know.
+
+How do we do non-greedy repetition of a pattern `p`, like we would in Regex
+by writing `p*?`?
+
+By using the
+[`manyTill_`](https://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_) combinator. To repeat pattern `p` non-greedily, write
+`manyTill_ p q` where `q` is the entire rest of the parser.
+
+For example, this parse fails because `many` repeats the pattern `letterChar`
+greedily.
+
+```haskell
+flip parseMaybe "abc" $ do
+  many letterChar
+  single 'b'
+  single 'c'
+```
+```haskell
+Nothing
+```
+
+To repeat pattern `letterChar` non-greedily, use `manyTill_`.
+
+```haskell
+flip parseMaybe "abc" $ do
+  manyTill_ letterChar $ do
+    single 'b'
+    single 'c'
+```
+```haskell
+Just ("a",'c')
 ```
 
 
