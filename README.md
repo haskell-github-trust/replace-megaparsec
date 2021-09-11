@@ -277,7 +277,7 @@ flip runState 0 $ streamEditT letterChar editThree "a a a a a"
 ```
 
 
-### Non-greedy repetition
+### Non-greedy pattern repetition
 
 This is not a feature of this library, but it’s
 a useful technique to know.
@@ -293,10 +293,10 @@ For example, this parse fails because `many` repeats the pattern `letterChar`
 greedily.
 
 ```haskell
-flip parseMaybe "abc" $ do
-  many letterChar
-  single 'b'
-  single 'c'
+flip parseMaybe "aab" $ do
+  a <- many letterChar
+  b <- single 'b'
+  pure (a,b)
 ```
 ```haskell
 Nothing
@@ -305,13 +305,13 @@ Nothing
 To repeat pattern `letterChar` non-greedily, use `manyTill_`.
 
 ```haskell
-flip parseMaybe "abc" $ do
-  manyTill_ letterChar $ do
+flip parseMaybe "aab" $ do
+  (a,b) <- manyTill_ letterChar $ do
     single 'b'
-    single 'c'
+  pure (a,b)
 ```
 ```haskell
-Just ("a",'c')
+Just ("aa",'b')
 ```
 
 
