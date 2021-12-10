@@ -11,8 +11,8 @@
 * [Benchmarks](#benchmarks)
 * [Hypothetically Asked Questions](#hypothetically-asked-questions)
 
-__replace-megaparsec__ is for finding text patterns, and also
-replacing or splitting on the found patterns.
+__replace-megaparsec__ finds text patterns, and also
+replaces or splits on the found patterns.
 This activity is traditionally done with regular expressions,
 but __replace-megaparsec__ uses
 [__megaparsec__](http://hackage.haskell.org/package/megaparsec)
@@ -74,9 +74,9 @@ version.
 
 * Regular expressions are only able to pattern-match
   [regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
-  grammers.
-  Megaparsec parsers are able pattern-match context-free grammers, and
-  even context-sensitive grammers, if needed. See below for
+  grammars.
+  Megaparsec parsers are able pattern-match context-free grammars, and
+  even context-sensitive grammars, if needed. See below for
   an example of lifting a `Parser` into a `State` monad for context-sensitive
   pattern-matching.
 
