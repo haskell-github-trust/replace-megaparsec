@@ -74,9 +74,9 @@ version.
 
 * Regular expressions are only able to pattern-match
   [regular](https://en.wikipedia.org/wiki/Chomsky_hierarchy#The_hierarchy)
-  grammers.
-  Megaparsec parsers are able pattern-match context-free grammers, and
-  even context-sensitive grammers, if needed. See below for
+  grammars.
+  Megaparsec parsers are able pattern-match context-free grammars, and
+  even context-sensitive grammars, if needed. See below for
   an example of lifting a `Parser` into a `State` monad for context-sensitive
   pattern-matching.
 
