@@ -12,7 +12,7 @@
 * [Hypothetically Asked Questions](#hypothetically-asked-questions)
 
 __replace-megaparsec__ is for finding text patterns, and also
-replaces or splits on the found patterns.
+replacing or splitting on the found patterns.
 This activity is traditionally done with regular expressions,
 but __replace-megaparsec__ uses
 [__megaparsec__](http://hackage.haskell.org/package/megaparsec)
