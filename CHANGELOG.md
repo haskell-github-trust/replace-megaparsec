@@ -1,5 +1,11 @@
 # Revision history for replace-megaparsec
 
+## 1.4.5.0 -- 2022-04-14
+
+Minor documentation changes.
+
+Confirmed tests pass for text v2.
+
 ## 1.4.4.0 -- 2020-12-04
 
 Add `splitCapT` and `breakCapT`.
