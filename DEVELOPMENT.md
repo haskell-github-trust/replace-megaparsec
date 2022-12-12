@@ -5,9 +5,8 @@
 Update .cabal file to new version
 
 ```
-nix-shell -p cabal-install -p ghc
-git tag v0.0.0.0
+nix develop
 cabal haddock
+cabal test
 cabal sdist
-
 ```
