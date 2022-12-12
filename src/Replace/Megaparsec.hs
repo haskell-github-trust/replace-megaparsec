@@ -88,7 +88,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Replace.Megaparsec
   (

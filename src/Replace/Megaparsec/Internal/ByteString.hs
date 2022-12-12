@@ -14,6 +14,7 @@
 
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Replace.Megaparsec.Internal.ByteString
   (

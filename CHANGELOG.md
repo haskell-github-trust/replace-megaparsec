@@ -1,5 +1,17 @@
 # Revision history for replace-megaparsec
 
+## 1.5.0.0 -- 2023-05-08
+
+Upgrade to GHC v9.4.4, text v2.0.1
+
+Text does not work with GHC v9.4.3
+
+Test
+* exitcode-stdio-1.0 instead of detailed-0.9
+* HSpec instead of Cabal Distribution.TestSuite
+
+Added megaparsec version bounds #36
+
 ## 1.4.5.0 -- 2022-04-14
 
 Minor documentation changes.
