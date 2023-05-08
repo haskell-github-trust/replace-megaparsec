@@ -1,10 +1,10 @@
+cabal-version:       3.8
 name:                replace-megaparsec
 version:             1.5.0.0
-cabal-version:       1.18
 synopsis:            Find, replace, and split string patterns with Megaparsec parsers (instead of regex)
 homepage:            https://github.com/jamesdbrock/replace-megaparsec
 bug-reports:         https://github.com/jamesdbrock/replace-megaparsec/issues
-license:             BSD2
+license:             BSD-2-Clause
 license-file:        LICENSE
 author:              James Brock <jamesbrock@gmail.com>
 maintainer:          James Brock <jamesbrock@gmail.com>
@@ -24,7 +24,7 @@ source-repository head
 
 library
   hs-source-dirs:      src
-  build-depends:       base >= 4.0
+  build-depends:       base >= 4.0 && < 5.0
                      , megaparsec >= 7.0.0
                      , bytestring
                      , text
@@ -46,4 +46,3 @@ test-suite test
                      , hspec
                      , text
                      , bytestring
-  ghc-options:         -Wall -debug

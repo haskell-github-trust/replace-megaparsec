@@ -1,3 +1,4 @@
+# Upload and publish this package to https://hackage.haskell.org/
 name: Hackage Publish
 on:
   # https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow
@@ -28,7 +29,7 @@ jobs:
           hackageToken: ${{ secrets.HACKAGE_AUTHTOKEN_001 }}
           packagesPath: dist-newstyle/sdist
           docsPath: dist-newstyle/docs
-          publish: true
+          publish: true # Publish directly instead of uploading a Candidate
 
 # cabal Support authentication tokens for uploading files
 # https://github.com/haskell/cabal/issues/6738
