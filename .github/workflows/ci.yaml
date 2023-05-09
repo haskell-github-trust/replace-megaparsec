@@ -19,6 +19,7 @@ jobs:
         with:
           ghc-version: ${{ matrix.ghc }}
           cabal-version: ${{ matrix.cabal }}
+      - run: cabal check
       - run: cabal v2-update $CONFIG
       - run: cabal v2-freeze $CONFIG
         # https://github.com/actions/cache
