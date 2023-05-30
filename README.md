@@ -87,14 +87,6 @@ version.
 
 # Usage Examples
 
-These usage examples can be run in a live Jupyter notebook hosted
-by [mybinder.org](https://mybinder.org/). Click the badge to launch:
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jamesdbrock/replace-megaparsec/master?urlpath=lab/tree/work/ReplaceMegaparsecUsage.ipynb)
-
-Try the examples in `ghci` by
-running `cabal v2-repl` in the `replace-megaparsec/`
-root directory.
-
 The examples depend on these imports.
 
 ```haskell
