@@ -3,7 +3,6 @@
 [![Hackage](https://img.shields.io/hackage/v/replace-megaparsec.svg?style=flat)](https://hackage.haskell.org/package/replace-megaparsec)
 [![Stackage Nightly](http://stackage.org/package/replace-megaparsec/badge/nightly)](http://stackage.org/nightly/package/replace-megaparsec)
 [![Stackage LTS](http://stackage.org/package/replace-megaparsec/badge/lts)](http://stackage.org/lts/package/replace-megaparsec)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jamesdbrock/replace-megaparsec/master?urlpath=lab/tree/work/ReplaceMegaparsecUsage.ipynb)
 
 * [Usage Examples](#usage-examples)
 * [In the Shell](#in-the-shell)
