@@ -240,9 +240,9 @@ flip evalState 0 $ streamEditT capThird (pure . fmap toUpper) "a a a a a"
 
 ### Pattern match, edit the matches, and count the edits with [`streamEditT`](https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEditT)
 
-Find and capitalize no more than three letters in a string, and return the 
+Find and capitalize no more than three letters in a string, and return the
 edited string along with the number of letters capitalized. To enable the
-editor function to remember how many letters it has capitalized, we'll 
+editor function to remember how many letters it has capitalized, we'll
 run `streamEditT` in the `State` monad from the `mtl` package. Use this
 technique to get the same functionality as Python
 [`re.subn`](https://docs.python.org/3/library/re.html#re.subn).
@@ -381,14 +381,14 @@ string `oo`. So, like the regex `s/x/oo/g`.
 
 We have two benchmark input cases, which we call __dense__ and __sparse__.
 
-The __dense__ case is one megabyte of alternating spaces and `x`s
+The __dense__ case is ten megabytes of alternating spaces and `x`s
 like
 
 ```
 x x x x x x x x x x x x x x x x x x x x x x x x x x x x
 ```
 
-The __sparse__ case is one megabyte of spaces with a single `x` in the middle
+The __sparse__ case is ten megabytes of spaces with a single `x` in the middle
 like
 
 ```
@@ -402,31 +402,20 @@ and the best observed time is recorded.
 See [replace-benchmark](https://github.com/jamesdbrock/replace-benchmark)
 for details.
 
-| Program                                           | dense     | sparse   |
-| :---                                              |      ---: |     ---: |
-| [Python 3.7.4 `re.sub`][sub] *repl* function      | 89.23ms   | 23.98ms  |
-| [Perl 5 `s///ge`][s]                              | 180.65ms  | 5.02ms   |
-| [`Replace.Megaparsec.streamEdit`][m] `String`     | 441.94ms  | 375.04ms |
-| [`Replace.Megaparsec.streamEdit`][m] `ByteString` | 529.99ms  | 73.76ms  |
-| [`Replace.Megaparsec.streamEdit`][m] `Text`       | 547.47ms  | 139.21ms |
-| [`Replace.Attoparsec.ByteString.streamEdit`][ab]  | 394.12ms  | 41.13ms  |
-| [`Replace.Attoparsec.Text.streamEdit`][at]        | 515.26ms  | 46.10ms  |
-| [`Text.Regex.Applicative.replace`][ra] `String`   | 1083.98ms | 646.40ms |
-| [`Text.Regex.PCRE.Heavy.gsub`][ph] `Text`         | > 10min   | 14.29ms  |
-| [`Control.Lens.Regex.ByteString.match`][lb]       | > 10min   | 4.27ms   |
-| [`Control.Lens.Regex.Text.match`][lt]             | > 10min   | 14.74ms  |
-
-[sub]: https://docs.python.org/3/library/re.html#re.sub
-[s]: https://perldoc.perl.org/functions/s.html
-[m]: https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEdit
-[ab]: https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-ByteString.html#v:streamEdit
-[at]: https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-Text.html#v:streamEdit
-[ra]: http://hackage.haskell.org/package/regex-applicative/docs/Text-Regex-Applicative.html#v:replace
-[ss]: http://hackage.haskell.org/package/stringsearch/docs/Data-ByteString-Search.html#v:replace
-[ph]: http://hackage.haskell.org/package/pcre-heavy/docs/Text-Regex-PCRE-Heavy.html#v:gsub
-[lb]: https://hackage.haskell.org/package/lens-regex-pcre/docs/Control-Lens-Regex-ByteString.html#v:match
-[lt]: https://hackage.haskell.org/package/lens-regex-pcre/docs/Control-Lens-Regex-Text.html#v:match
-
+| Program                                           | dense *ms*  | sparse *ms* |
+| :---                                              |      ---: |     ---:  |
+| Python 3.10.9 [`re.sub`](https://docs.python.org/3/library/re.html#re.sub) *repl* function | 557.22 | 35.47 |
+| Perl  v5.36.0 [`s///ge`](https://perldoc.perl.org/functions/s.html) function | 1208.66 | 12.61 |
+| [`Replace.Megaparsec.streamEdit`](https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEdit) `String` | 2921.25 | 2911.81 |
+| [`Replace.Megaparsec.streamEdit`](https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEdit) `ByteString` | 3743.25 | 757.21 |
+| [`Replace.Megaparsec.streamEdit`](https://hackage.haskell.org/package/replace-megaparsec/docs/Replace-Megaparsec.html#v:streamEdit) `Text` | 3818.47 | 881.69 |
+| [`Replace.Attoparsec.ByteString.streamEdit`](https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-ByteString.html#v:streamEdit) | 3006.38 | 179.66 |
+| [`Replace.Attoparsec.Text.streamEdit`](https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-Text.html#v:streamEdit) | 3062.43 | 300.13 |
+| [`Replace.Attoparsec.Text.Lazy.streamEdit`](https://hackage.haskell.org/package/replace-attoparsec/docs/Replace-Attoparsec-Text-Lazy.html#v:streamEdit) | 3102.15 | 241.58 |
+| [`Text.Regex.Applicative.replace`](http://hackage.haskell.org/package/regex-applicative/docs/Text-Regex-Applicative.html#v:replace) `String` | 13875.25 | 4330.52 |
+| [`Text.Regex.PCRE.Heavy.gsub`](http://hackage.haskell.org/package/pcre-heavy/docs/Text-Regex-PCRE-Heavy.html#v:gsub) `Text` | ∞ | 113.27 |
+| [`Control.Lens.Regex.ByteString.match`](https://hackage.haskell.org/package/lens-regex-pcre/docs/Control-Lens-Regex-ByteString.html#v:match) | ∞ | 117.05 |
+| [`Control.Lens.Regex.Text.match`](https://hackage.haskell.org/package/lens-regex-pcre/docs/Control-Lens-Regex-Text.html#v:match) | ∞ | 35.97 |
 
 # Hypothetically Asked Questions
 
