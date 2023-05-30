@@ -1,6 +1,6 @@
 # Revision history for replace-megaparsec
 
-## 1.5.0.0 -- 2023-05-08
+## 1.5.0.0 -- 2023-05-30
 
 Upgrade to GHC v9.4.4, text v2.0.1
 
