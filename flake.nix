@@ -2,7 +2,7 @@
 {
   description = "replace-megaparsec";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
   outputs = inputs:
@@ -12,16 +12,14 @@
           packageOverrides = hfinal: hprev:
             prev.haskell.packageOverrides hfinal hprev // {
               replace-megaparsec = hfinal.callCabal2nix "replace-megaparsec" ./. { };
-              # https://github.com/ddssff/listlike/issues/23
-              ListLike = prev.haskell.lib.dontCheck hprev.ListLike;
             };
         };
       };
       perSystem = system:
         let
           pkgs = import inputs.nixpkgs { inherit system; overlays = [ overlay ]; };
-          # hspkgs = pkgs.haskellPackages;
-          hspkgs = pkgs.haskell.packages.ghc944;
+          hspkgs = pkgs.haskellPackages;
+          # hspkgs = pkgs.haskell.packages.ghc944;
         in
         {
           devShell = hspkgs.shellFor {
